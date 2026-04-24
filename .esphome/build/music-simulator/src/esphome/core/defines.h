@@ -1,0 +1,27 @@
+#pragma once
+#include "esphome/core/macros.h"
+#define ESPHOME_BOARD "host"
+#define ESPHOME_COMPONENT_COUNT 10
+#define ESPHOME_THREAD_MULTI_ATOMICS
+#define LVGL_LOG_LEVEL ESPHOME_LOG_LEVEL_WARN
+#define MDNS_SERVICE_COUNT 1
+#define USE_DISPLAY
+#define USE_ESPHOME_HOST_MAC_ADDRESS {152, 53, 105, 171, 246, 121}
+#define USE_IMAGE
+#define USE_LVGL
+#define USE_LVGL_ARC
+#define USE_LVGL_FONT
+#define USE_LVGL_FONT_PLACEHOLDER
+#define USE_LVGL_IMAGE
+#define USE_LVGL_IMG
+#define USE_LVGL_LABEL
+#define USE_LVGL_LOG
+#define USE_LVGL_OBJ
+#define USE_LVGL_STYLE
+#define USE_LVGL_THEME_DEFAULT
+#define USE_LVGL_TOUCHSCREEN
+#define USE_LVGL_USER_DATA
+#define USE_MDNS
+#define USE_NETWORK
+#define USE_NETWORK_IPV6 false
+#define USE_TOUCHSCREEN

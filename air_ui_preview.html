@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Air UI Preview</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #0b0b0f;
+      font-family: "DM Sans", sans-serif;
+    }
+    .dial {
+      position: relative;
+      width: 240px;
+      height: 240px;
+      border-radius: 50%;
+      background: #000;
+      overflow: hidden;
+    }
+    .temp {
+      position: absolute;
+      left: 68px;
+      top: 34px;
+      color: #fff;
+      font-size: 75px;
+      font-weight: 300;
+      line-height: 1;
+    }
+    .sub {
+      position: absolute;
+      left: 83px;
+      top: 126px;
+      color: #375274;
+      font-size: 8px;
+      font-weight: 300;
+      letter-spacing: 0.2px;
+    }
+    .dot {
+      position: absolute;
+      left: 8px;
+      top: 108px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #00d7ff;
+      box-shadow: 0 0 6px rgba(0, 215, 255, 0.7);
+    }
+    .btn {
+      position: absolute;
+      width: 37px;
+      height: 37px;
+      border-radius: 50%;
+      background: #121829;
+      display: grid;
+      place-items: center;
+    }
+    .btn img {
+      width: 25px;
+      height: 25px;
+      object-fit: contain;
+    }
+    .btn-fan { left: 61px; top: 152px; }
+    .btn-power {
+      left: 107px;
+      top: 152px;
+      background: #08202d;
+      border: 1px solid #00c5ed;
+      box-sizing: border-box;
+    }
+    .btn-swing { left: 153px; top: 152px; }
+  </style>
+</head>
+<body>
+  <div class="dial">
+    <svg width="240" height="240" viewBox="0 0 240 240" aria-hidden="true">
+      <!-- Background grey arc: 170°→300° (clockwise 130°) -->
+      <!-- circumference r=106: 2π*106≈666. 130° = 666*130/360≈240 -->
+      <circle cx="120" cy="120" r="106" fill="none" stroke="#1A1D28" stroke-width="3" stroke-linecap="round"
+        stroke-dasharray="240 666" transform="rotate(170 120 120)"/>
+
+      <!-- Main cyan setpoint arc: 170°→306° = 136° clockwise. 666*136/360≈252 -->
+      <circle cx="120" cy="120" r="106" fill="none" stroke="#03B3E4" stroke-width="4" stroke-linecap="round"
+        stroke-dasharray="252 666" transform="rotate(170 120 120)"/>
+
+      <!-- Blue dot on left side at ~240° position (x≈6, y≈173 on r=106 circle)
+           Actually CSS says x=8, y=108 which is left-center, ~180° position -->
+      <defs>
+        <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+          <feGaussianBlur stdDeviation="2" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <circle cx="14" cy="120" r="4" fill="#00D7FF" filter="url(#glow)"/>
+
+      <!-- Red arc (room temp): 306°→344° = 38°. 2π*108≈679. 38/360*679≈72 -->
+      <circle cx="120" cy="120" r="108" fill="none" stroke="#FF120C" stroke-width="3" stroke-linecap="round"
+        stroke-dasharray="72 679" transform="rotate(306 120 120)"/>
+
+      <!-- Blue arc (humidity): 346°→26° = 40°. 40/360*679≈75 -->
+      <circle cx="120" cy="120" r="108" fill="none" stroke="#00C5ED" stroke-width="3" stroke-linecap="round"
+        stroke-dasharray="75 679" transform="rotate(346 120 120)"/>
+
+      <!-- Fan speed segments (right-bottom): 5 segments each ~7° wide, 3° gap -->
+      <!-- r=106, circ=666. 7°=13px, 3°gap=5px -->
+      <circle cx="120" cy="120" r="106" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"
+        stroke-dasharray="13 653" transform="rotate(34 120 120)"/>
+      <circle cx="120" cy="120" r="106" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"
+        stroke-dasharray="13 653" transform="rotate(44 120 120)"/>
+      <circle cx="120" cy="120" r="106" fill="none" stroke="#3C4048" stroke-width="5" stroke-linecap="round"
+        stroke-dasharray="13 653" transform="rotate(56 120 120)"/>
+      <circle cx="120" cy="120" r="106" fill="none" stroke="#3C4048" stroke-width="5" stroke-linecap="round"
+        stroke-dasharray="13 653" transform="rotate(68 120 120)"/>
+      <circle cx="120" cy="120" r="106" fill="none" stroke="#3C4048" stroke-width="5" stroke-linecap="round"
+        stroke-dasharray="13 653" transform="rotate(80 120 120)"/>
+    </svg>
+
+    <div class="temp">24°</div>
+    <div class="sub">Temp 28°&nbsp;&nbsp;Humid 60%</div>
+    <div class="dot"></div>
+
+    <div class="btn btn-fan">
+      <img src="src/assets/images/air_page/操作_风速off.png" alt="fan" />
+    </div>
+    <div class="btn btn-power">
+      <img src="src/assets/images/air_page/开关open.png" alt="power" />
+    </div>
+    <div class="btn btn-swing">
+      <img src="src/assets/images/air_page/下扫风off.png" alt="swing" />
+    </div>
+  </div>
+</body>
+</html>

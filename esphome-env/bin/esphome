@@ -1,0 +1,6 @@
+#!/Users/jason/M5Stack-Dial-Smart-Button/esphome-env/bin/python3
+import sys
+from esphome.__main__ import main
+if __name__ == '__main__':
+    sys.argv[0] = sys.argv[0].removesuffix('.exe')
+    sys.exit(main())

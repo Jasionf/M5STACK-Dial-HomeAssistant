@@ -1,0 +1,543 @@
+# ═══════════════════════════════════════════════════════════════
+#  src/pages/main.yaml  ─  Clock / Weather Page
+#
+#  Contributes to the merged config:
+#    · Clock page fonts and colors
+#    · RTC time (PCF8563) + HA time sync
+#    · HA weather sensors → LVGL label updates
+#    · Rotary encoder sensor + physical buttons
+#    · LVGL page_clock widgets
+# ═══════════════════════════════════════════════════════════════
+
+# ── Fonts ─────────────────────────────────────────────────────
+font:
+  - file: "gfonts://DM+Sans"
+    id: font_clock
+    size: 55
+    bpp: 4
+    glyphs: "0123456789: "
+
+  - file: "gfonts://DM+Sans"
+    id: font_date
+    size: 14
+    bpp: 4
+    glyphs: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 /.-"
+
+  - file: "gfonts://DM+Sans"
+    id: font_val
+    size: 15
+    bpp: 4
+    glyphs: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .-%°/"
+
+  - file:
+      family: DM+Sans
+      weight: 700
+      type: gfonts
+    id: font_lbl
+    size: 11
+    bpp: 4
+    glyphs: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ."
+
+# ── Colors ────────────────────────────────────────────────────
+color:
+  - id: col_ring_track
+    hex: "1E1E2E"
+  - id: col_ring_progress
+    hex: "334155"
+  - id: col_dot
+    hex: "7C86FF"
+  - id: col_text_lbl
+    hex: "7C86FF"
+  - id: col_divider
+    hex: "1E2A3A"
+
+# ── Time ──────────────────────────────────────────────────────
+time:
+  - platform: pcf8563
+    id: rtctime
+    i2c_id: internal_i2c
+    address: 0x51
+    update_interval: never
+    on_time:
+      - seconds: 0
+        minutes: /1
+        then:
+          - lvgl.label.update:
+              id: lbl_clock
+              text: !lambda |-
+                static char buf[6];
+                auto t = id(rtctime).now();
+                sprintf(buf, "%02d:%02d", t.hour, t.minute);
+                return buf;
+          - lvgl.label.update:
+              id: lbl_date
+              text: !lambda |-
+                static char buf[20];
+                auto t = id(rtctime).now();
+                const char* days[] = {"Mon","Tue","Wed","Thu","Fri","Sat","Sun"};
+                sprintf(buf, "%s  %d/%d", days[t.day_of_week], t.month, t.day_of_month);
+                return buf;
+          - lvgl.arc.update:
+              id: arc_minute
+              value: !lambda "return id(rtctime).now().minute;"
+          - lvgl.widget.update:
+              id: dot_minute
+              x: !lambda |-
+                float angle = (270.0f + id(rtctime).now().minute * 6.0f) * 3.14159f / 180.0f;
+                return (int)(114.0f * cosf(angle));
+              y: !lambda |-
+                float angle = (270.0f + id(rtctime).now().minute * 6.0f) * 3.14159f / 180.0f;
+                return (int)(114.0f * sinf(angle));
+
+  - platform: homeassistant
+    id: esptime
+    on_time_sync:
+      then:
+        - pcf8563.write_time:
+
+# ── Sensors ───────────────────────────────────────────────────
+sensor:
+  - platform: rotary_encoder
+    id: encoder
+    pin_a:
+      number: GPIO40
+      mode: INPUT_PULLUP
+    pin_b:
+      number: GPIO41
+      mode: INPUT_PULLUP
+    resolution: 4
+    on_clockwise:
+      - if:
+          condition:
+            lambda: 'return id(in_colorpicker);'
+          then:
+            - script.execute: light_hue_up
+      - if:
+          condition:
+            lambda: 'return id(in_light) && !id(in_colorpicker) && !id(in_menu);'
+          then:
+            - script.execute: light_brightness_up
+      - if:
+          condition:
+            lambda: 'return id(in_air);'
+          then:
+            - lambda: |-
+                id(air_encoder_step_accum) += 1;
+                if (id(air_encoder_step_accum) >= 4) {
+                  id(air_encoder_step_accum) = 0;
+                  if (id(air_mode) == 0) {
+                    id(air_temp_up).execute();
+                  } else {
+                    id(air_fan_up).execute();
+                  }
+                }
+      - if:
+          condition:
+            lambda: 'return id(in_music);'
+          then:
+            - script.execute: music_volume_up
+      - if:
+          condition:
+            lambda: 'return id(in_menu);'
+          then:
+            - script.execute: menu_scroll_down
+      - if:
+          condition:
+            lambda: 'return id(in_fridge);'
+          then:
+            - script.execute: fridge_scroll_down
+      - if:
+          condition:
+            lambda: 'return id(in_timer);'
+          then:
+            - script.execute: timer_encoder_up
+    on_anticlockwise:
+      - if:
+          condition:
+            lambda: 'return id(in_colorpicker);'
+          then:
+            - script.execute: light_hue_down
+      - if:
+          condition:
+            lambda: 'return id(in_light) && !id(in_colorpicker) && !id(in_menu);'
+          then:
+            - script.execute: light_brightness_down
+      - if:
+          condition:
+            lambda: 'return id(in_air);'
+          then:
+            - lambda: |-
+                id(air_encoder_step_accum) -= 1;
+                if (id(air_encoder_step_accum) <= -4) {
+                  id(air_encoder_step_accum) = 0;
+                  if (id(air_mode) == 0) {
+                    id(air_temp_down).execute();
+                  } else {
+                    id(air_fan_down).execute();
+                  }
+                }
+      - if:
+          condition:
+            lambda: 'return id(in_music);'
+          then:
+            - script.execute: music_volume_down
+      - if:
+          condition:
+            lambda: 'return id(in_menu);'
+          then:
+            - script.execute: menu_scroll_up
+      - if:
+          condition:
+            lambda: 'return id(in_fridge);'
+          then:
+            - script.execute: fridge_scroll_up
+      - if:
+          condition:
+            lambda: 'return id(in_timer);'
+          then:
+            - script.execute: timer_encoder_down
+
+  - platform: homeassistant
+    id: ha_temperature
+    entity_id: weather.shenzhen
+    attribute: temperature
+    internal: true
+    on_value:
+      then:
+        - lvgl.label.update:
+            id: lbl_temp
+            text: !lambda |-
+              static char buf[8];
+              sprintf(buf, "%.0f\xc2\xb0", x);
+              return buf;
+
+  - platform: homeassistant
+    id: ha_humidity
+    entity_id: weather.shenzhen
+    attribute: humidity
+    internal: true
+    on_value:
+      then:
+        - lvgl.label.update:
+            id: lbl_humidity
+            text: !lambda |-
+              static char buf[8];
+              sprintf(buf, "%.0f%%", x);
+              return buf;
+
+  - platform: homeassistant
+    id: ha_aqi
+    entity_id: weather.shenzhen
+    attribute: aqi
+    internal: true
+    on_value:
+      then:
+        - lvgl.label.update:
+            id: lbl_uv
+            text: !lambda |-
+              static char buf[8];
+              sprintf(buf, "%.0f", x);
+              return buf;
+
+  - platform: homeassistant
+    id: ha_pressure
+    entity_id: weather.shenzhen
+    attribute: pressure
+    internal: true
+    on_value:
+      then:
+        - lvgl.label.update:
+            id: lbl_pressure
+            text: !lambda |-
+              static char buf[12];
+              sprintf(buf, "%.0fhPa", x);
+              return buf;
+
+  - platform: homeassistant
+    id: ha_wind
+    entity_id: weather.shenzhen
+    attribute: wind_speed
+    internal: true
+    on_value:
+      then:
+        - lvgl.label.update:
+            id: lbl_cloud
+            text: !lambda |-
+              static char buf[12];
+              sprintf(buf, "%.0fkm/h", x);
+              return buf;
+
+# ── Buttons ───────────────────────────────────────────────────
+binary_sensor:
+  - platform: gpio
+    name: Button
+    id: front_button
+    pin:
+      number: GPIO42
+      inverted: true
+      mode:
+        input: true
+        pullup: true
+    on_multi_click:
+      # Double-click → open menu (only from clock page)
+      - timing:
+          - ON for at most 400ms
+          - OFF for at most 400ms
+          - ON for at most 400ms
+          - OFF for at least 50ms
+        then:
+          - if:
+              condition:
+                lambda: 'return !id(in_menu) && !id(button_debounce);'
+              then:
+                - globals.set: {id: button_debounce, value: 'true'}
+                - script.execute: open_menu
+                - delay: 500ms
+                - globals.set: {id: button_debounce, value: 'false'}
+      # Single click while in menu → confirm selection
+      - timing:
+          - ON for at most 400ms
+          - OFF for at least 50ms
+        then:
+          - if:
+              condition:
+                lambda: 'return id(in_menu) && !id(button_debounce);'
+              then:
+                - globals.set: {id: button_debounce, value: 'true'}
+                - script.execute: menu_confirm
+                - delay: 300ms
+                - globals.set: {id: button_debounce, value: 'false'}
+          - if:
+              condition:
+                lambda: 'return id(in_air);'
+              then:
+                - script.execute: air_toggle_mode
+          - if:
+              condition:
+                lambda: 'return id(in_timer);'
+              then:
+                - script.execute: timer_toggle
+  - platform: gpio
+    name: Hold Button
+    id: hold_button
+    pin:
+      number: GPIO46
+      inverted: false
+      mode:
+        input: true
+        pullup: false
+    on_press:
+      - if:
+          condition:
+            lambda: 'return id(in_menu);'
+          then:
+            - script.execute: close_menu
+      - if:
+          condition:
+            lambda: 'return id(in_light);'
+          then:
+            - script.execute: close_light
+      - if:
+          condition:
+            lambda: 'return id(in_air);'
+          then:
+            - script.execute: close_air
+      - if:
+          condition:
+            lambda: 'return id(in_music);'
+          then:
+            - script.execute: close_music
+      - if:
+          condition:
+            lambda: 'return id(in_timer);'
+          then:
+            - script.execute: close_timer
+
+# ── LVGL page_clock ───────────────────────────────────────────
+lvgl:
+  pages:
+    - id: page_clock
+      bg_color: col_bg
+      bg_opa: COVER
+      scrollbar_mode: "OFF"
+      widgets:
+
+        # ── Outer ring track ──────────────────────────────────
+        - arc:
+            align: CENTER
+            width: 228
+            height: 228
+            arc_color: col_ring_track
+            arc_width: 3
+            arc_opa: COVER
+            arc_rounded: true
+            indicator:
+              arc_color: col_ring_track
+              arc_width: 3
+              arc_opa: COVER
+            start_angle: 0
+            end_angle: 360
+            value: 100
+            min_value: 0
+            max_value: 100
+            adjustable: false
+            knob:
+              bg_opa: TRANSP
+              border_width: 0
+              width: 0
+              height: 0
+
+        # ── Outer ring — minute progress ──────────────────────
+        - arc:
+            id: arc_minute
+            align: CENTER
+            width: 228
+            height: 228
+            arc_color: col_ring_track
+            arc_width: 3
+            arc_opa: TRANSP
+            arc_rounded: true
+            rotation: 270
+            indicator:
+              arc_color: col_ring_progress
+              arc_width: 3
+              arc_opa: COVER
+              arc_rounded: true
+            start_angle: 0
+            end_angle: 360
+            value: 24
+            min_value: 0
+            max_value: 60
+            adjustable: false
+            knob:
+              bg_opa: TRANSP
+              border_width: 0
+              width: 0
+              height: 0
+
+        # ── Minute dot ────────────────────────────────────────
+        - obj:
+            id: dot_minute
+            align: CENTER
+            x: 0
+            y: -114
+            width: 10
+            height: 10
+            radius: 5
+            bg_color: col_dot
+            border_width: 2
+            border_color: col_bg
+            clickable: false
+            scrollbar_mode: "OFF"
+
+        # ── Clock digits ──────────────────────────────────────
+        - label:
+            id: lbl_clock
+            align: CENTER
+            y: -50
+            text_font: font_clock
+            text_color: col_text_pri
+            text: "00:00"
+
+        # ── Date ──────────────────────────────────────────────
+        - label:
+            id: lbl_date
+            align: CENTER
+            y: -12
+            text_font: font_date
+            text_color: col_text_sec
+            text: "000 0/0"
+
+        # ── Label row 1 ───────────────────────────────────────
+        - label:
+            align: CENTER
+            x: -58
+            y: 18
+            text_font: font_lbl
+            text_color: col_text_lbl
+            text: "TEMP"
+        - label:
+            align: CENTER
+            x: 0
+            y: 18
+            text_font: font_lbl
+            text_color: col_text_lbl
+            text: "HUM"
+        - label:
+            align: CENTER
+            x: 58
+            y: 18
+            text_font: font_lbl
+            text_color: col_text_lbl
+            text: "AQI"
+
+        # ── Value row 1 ───────────────────────────────────────
+        - label:
+            id: lbl_temp
+            align: CENTER
+            x: -58
+            y: 34
+            text_font: font_val
+            text_color: col_text_pri
+            text: "--"
+        - label:
+            id: lbl_humidity
+            align: CENTER
+            x: 0
+            y: 34
+            text_font: font_val
+            text_color: col_text_pri
+            text: "--"
+        - label:
+            id: lbl_uv
+            align: CENTER
+            x: 58
+            y: 34
+            text_font: font_val
+            text_color: col_text_pri
+            text: "--"
+
+        # ── Divider ───────────────────────────────────────────
+        - obj:
+            align: CENTER
+            y: 48
+            width: 164
+            height: 1
+            bg_color: col_divider
+            border_width: 0
+            clickable: false
+            scrollbar_mode: "OFF"
+
+        # ── Label row 2 ───────────────────────────────────────
+        - label:
+            align: CENTER
+            x: -30
+            y: 62
+            text_font: font_lbl
+            text_color: col_text_lbl
+            text: "PRESSURE"
+        - label:
+            align: CENTER
+            x: 40
+            y: 62
+            text_font: font_lbl
+            text_color: col_text_lbl
+            text: "WIND"
+
+        # ── Value row 2 ───────────────────────────────────────
+        - label:
+            id: lbl_pressure
+            align: CENTER
+            x: -30
+            y: 77
+            text_font: font_val
+            text_color: col_text_pri
+            text: "--"
+        - label:
+            id: lbl_cloud
+            align: CENTER
+            x: 40
+            y: 77
+            text_font: font_val
+            text_color: col_text_pri
+            text: "--"

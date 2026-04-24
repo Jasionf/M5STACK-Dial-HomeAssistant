@@ -1,0 +1,326 @@
+# =================================================================
+#  src/pages/music.yaml  -  Music Player Page
+#
+#  Layout (based on music.css):
+#    · Full-circle purple background (#6640F1)
+#    · Album art circle (108×108) in upper half
+#    · Song title text (DM Sans 14px, white)
+#    · Playback controls: Prev | Play (circle) | Next
+#    · 7 decorative waveform bars (gradient purple)
+#
+#  Encoder: clockwise = volume up, anticlockwise = volume down
+#  Button click: (reserved for play/pause toggle via HA)
+#  Hold button: close page → page_clock
+#
+#  TODO: wire media player HA entity for live track info
+# =================================================================
+
+font:
+  - file:
+      family: DM+Sans
+      weight: 300
+      type: gfonts
+    id: font_music_title
+    size: 14
+    bpp: 4
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,!?-'"
+
+color:
+  - id: col_music_bg
+    hex: "000000"
+  - id: col_music_ring_track
+    hex: "000000"
+  - id: col_music_ring_progress
+    hex: "764CFF"
+  - id: col_music_play_btn
+    hex: "A98FFF"
+  - id: col_music_dark
+    hex: "1A1040"
+
+image:
+  - file: src/assets/images/play_right.png
+    id: play_right
+    type: RGB565
+    transparency: alpha_channel
+    resize: 15x15
+  - file: src/assets/images/play_left.png
+    id: play_left
+    type: RGB565
+    transparency: alpha_channel
+    resize: 15x15
+  - file: src/assets/images/play_start.png
+    id: play_start
+    type: RGB565
+    transparency: alpha_channel
+    resize: 20x20
+  - file: src/assets/images/play_vlaue.png
+    id: play_value
+    type: RGB565
+    transparency: alpha_channel
+    resize: 16x16
+  - file: src/assets/images/playimage.png
+    id: playimage
+    type: RGB565
+    transparency: alpha_channel
+    resize: 108x108
+
+globals:
+  - id: in_music
+    type: bool
+    initial_value: 'false'
+  - id: music_volume
+    type: int
+    initial_value: '36'
+  - id: music_playing
+    type: bool
+    initial_value: 'false'
+  - id: music_progress
+    type: int
+    initial_value: '0'
+
+script:
+  - id: open_music
+    then:
+      - globals.set: {id: in_music, value: 'true'}
+      - globals.set: {id: in_menu, value: 'false'}
+      - script.execute: refresh_music_volume
+      - lvgl.page.show:
+          id: page_music
+          animation: MOVE_LEFT
+
+  - id: close_music
+    then:
+      - globals.set: {id: in_music, value: 'false'}
+      - lvgl.page.show:
+          id: page_clock
+          animation: MOVE_RIGHT
+
+  - id: play_next
+    then:
+      - homeassistant.action:
+          action: media_player.media_next_track
+          data:
+            entity_id: media_player.echo_base
+  - id: play_prev
+    then:
+      - homeassistant.action:
+          action: media_player.media_previous_track
+          data:
+            entity_id: media_player.echo_base 
+  - id: play_toggle
+    then:
+      - lambda: |-
+          id(music_playing) = !id(music_playing);
+      - homeassistant.action:
+          action: media_player.media_play_pause
+          data:
+            entity_id: media_player.echo_base
+  - id: music_volume_up
+    then:
+      - lambda: |-
+          int v = id(music_volume) + 14;
+          if (v > 100) v = 100;
+          id(music_volume) = v;    
+      - homeassistant.action:
+          action: media_player.volume_up
+          data:
+            entity_id: media_player.echo_base
+      - script.execute: refresh_music_volume     
+
+  - id: music_volume_down
+    then:
+      - lambda: |-
+          int v = id(music_volume) - 14;
+          if (v < 0) v = 0;
+          id(music_volume) = v;
+      - homeassistant.action:
+          action: media_player.volume_down
+          data:
+            entity_id: media_player.echo_base
+      - script.execute: refresh_music_volume
+
+  - id: refresh_music_volume
+    then:
+      - lambda: |-
+          int v = id(music_volume);
+          auto off = lv_color_hex(0x000000);
+          lv_obj_set_style_bg_color(id(vol_bar_1), v >  0 ? lv_color_hex(0xA98FFF) : off, 0);
+          lv_obj_set_style_bg_color(id(vol_bar_2), v > 14 ? lv_color_hex(0xA387FF) : off, 0);
+          lv_obj_set_style_bg_color(id(vol_bar_3), v > 28 ? lv_color_hex(0x9D7FFF) : off, 0);
+          lv_obj_set_style_bg_color(id(vol_bar_4), v > 42 ? lv_color_hex(0x9170FF) : off, 0);
+          lv_obj_set_style_bg_color(id(vol_bar_5), v > 57 ? lv_color_hex(0x8661FF) : off, 0);
+          lv_obj_set_style_bg_color(id(vol_bar_6), v > 71 ? lv_color_hex(0x7E57FF) : off, 0);
+          lv_obj_set_style_bg_color(id(vol_bar_7), v > 85 ? lv_color_hex(0x764CFF) : off, 0);
+          ESP_LOGI("music", "volume=%d", v);
+
+  - id: refresh_music_progress
+    then:
+      - lambda: |-
+          lv_arc_set_value(id(arc_music_progress), id(music_progress));
+          ESP_LOGI("music", "progress=%d", id(music_progress));
+
+lvgl:
+  pages:
+    - id: page_music
+      bg_color: col_music_bg
+      bg_opa: COVER
+      scrollbar_mode: "OFF"
+      widgets:
+        - obj:
+            align: TOP_LEFT
+            x: 0
+            y: 0
+            width: 240
+            height: 240
+            radius: 120
+            clip_corner: true
+            bg_color: col_music_bg
+            bg_opa: COVER
+            border_width: 0
+            pad_all: 0
+            scrollbar_mode: "OFF"
+            widgets:
+              # ── Progress / volume arc ring ─────────────────
+              # Full 360° ring; value tracks volume (0-100)
+              - arc:
+                  id: arc_music_progress
+                  align: CENTER
+                  width: 232
+                  height: 232
+                  rotation: 270
+                  start_angle: 0
+                  end_angle: 360
+                  min_value: 0
+                  max_value: 100
+                  value: 0
+                  arc_color: col_music_ring_track
+                  arc_width: 5
+                  arc_opa: COVER
+                  arc_rounded: true
+                  adjustable: false
+                  clickable: false
+                  indicator:
+                    arc_color: col_music_ring_progress
+                    arc_width: 5
+                    arc_opa: COVER
+                    arc_rounded: true
+                  knob:
+                    bg_opa: TRANSP
+                    border_width: 0
+                    width: 0
+                    height: 0
+
+              # ── Album art circle ──────────────────────────────
+              # 120×120 clipped circle, centred horizontally, top
+              - obj:
+                  x: 60
+                  y: 12
+                  width: 120
+                  height: 120
+                  radius: 60
+                  bg_opa: TRANSP
+                  border_width: 0
+                  clip_corner: true
+                  clickable: false
+                  scrollbar_mode: "OFF"
+                  widgets:
+                    - image:
+                        id: img_music_cover
+                        src: playimage
+                        x: 0
+                        y: 0
+
+              # ── Song title ────────────────────────────────────
+              # Font 14px, wide enough for one line, centred
+              - label:
+                  id: lbl_music_title
+                  x: 20
+                  y: 134
+                  width: 200
+                  text: "we don't talk anymore"
+                  text_font: font_music_title
+                  text_color: 0xFFFFFF
+                  long_mode: DOT
+                  text_align: CENTER
+
+              # ── Volume row: speaker icon + 7 bars ────────────
+              # Total width: 15(icon)+6(gap)+7×6+6×4(gaps)=87px
+              # Start x=(240-87)/2=76 → centred
+              - image:
+                  x: 76
+                  y: 156
+                  src: play_value
+
+              - obj: {id: vol_bar_1, x: 97,  y: 155, width: 6, height: 12, radius: 3, bg_color: 0xA98FFF, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_2, x: 107, y: 155, width: 6, height: 12, radius: 3, bg_color: 0xA387FF, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_3, x: 117, y: 155, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_4, x: 127, y: 155, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_5, x: 137, y: 155, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_6, x: 147, y: 155, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_7, x: 157, y: 155, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
+
+              # ── Playback controls ─────────────────────────────
+              # Prev | Play (44px circle, centred at 120,205) | Next
+              - obj:
+                  x: 48
+                  y: 183
+                  width: 36
+                  height: 36
+                  radius: 18
+                  bg_color: col_music_dark
+                  bg_opa: COVER
+                  border_width: 0
+                  clickable: true
+                  scrollbar_mode: "OFF"
+                  on_press:
+                    - script.execute: play_prev
+                  widgets:
+                    - image:
+                        src: play_left
+                        align: CENTER
+
+              - obj:
+                  x: 98
+                  y: 175
+                  width: 44
+                  height: 44
+                  radius: 22
+                  bg_color: col_music_play_btn
+                  bg_opa: COVER
+                  border_width: 0
+                  clickable: true
+                  scrollbar_mode: "OFF"
+                  on_press:
+                    - script.execute: play_toggle
+                  widgets:
+                    - image:
+                        src: play_start
+                        align: CENTER
+
+              - obj:
+                  x: 156
+                  y: 183
+                  width: 36
+                  height: 36
+                  radius: 18
+                  bg_color: col_music_dark
+                  bg_opa: COVER
+                  border_width: 0
+                  clickable: true
+                  scrollbar_mode: "OFF"
+                  on_press:
+                    - script.execute: play_next
+                  widgets:
+                    - image:
+                        src: play_right
+                        align: CENTER
+
+interval:
+  - interval: 1s
+    then:
+      - lambda: |-
+          if (!id(music_playing)) return;
+          int p = id(music_progress) + 1;
+          if (p > 100) p = 0;
+          id(music_progress) = p;
+          lv_arc_set_value(id(arc_music_progress), p);

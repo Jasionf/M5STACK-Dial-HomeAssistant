@@ -1,0 +1,30 @@
+#pragma once
+#define LV_COLOR_16_SWAP 1
+#define LV_COLOR_CHROMA_KEY lv_color_make(0, 4, 0)
+#define LV_COLOR_DEPTH 16
+#define LV_DRAW_COMPLEX 1
+#define LV_FONT_CUSTOM_DECLARE LV_FONT_DECLARE(*esphome_lv_default_font)
+#define LV_FONT_DEFAULT esphome_lv_default_font
+#define LV_GRADIENT_MAX_STOPS 2
+#define LV_LOG_LEVEL LV_LOG_LEVEL_WARN
+#define LV_MEM_CUSTOM 1
+#define LV_MEM_CUSTOM_ALLOC lv_custom_mem_alloc
+#define LV_MEM_CUSTOM_FREE lv_custom_mem_free
+#define LV_MEM_CUSTOM_INCLUDE "esphome/components/lvgl/lvgl_hal.h"
+#define LV_MEM_CUSTOM_REALLOC lv_custom_mem_realloc
+#define LV_TICK_CUSTOM 1
+#define LV_TICK_CUSTOM_INCLUDE "esphome/components/lvgl/lvgl_hal.h"
+#define LV_TICK_CUSTOM_SYS_TIME_EXPR (lv_millis())
+#define LV_USE_ARC 1
+#define LV_USE_FLEX 1
+#define LV_USE_FONT 1
+#define LV_USE_FONT_PLACEHOLDER 1
+#define LV_USE_IMAGE 1
+#define LV_USE_IMG 1
+#define LV_USE_LABEL 1
+#define LV_USE_LOG 1
+#define LV_USE_OBJ 1
+#define LV_USE_STYLE 1
+#define LV_USE_THEME_DEFAULT 1
+#define LV_USE_USER_DATA 1
+#define _LV_KCONFIG_PRESENT 1

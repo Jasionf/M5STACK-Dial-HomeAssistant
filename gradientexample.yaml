@@ -1,0 +1,62 @@
+lvgl:
+    ...
+    pages:
+      - id: meter_page
+        widgets:
+          - obj:
+              height: 240
+              width: 240
+              align: CENTER
+              y: -18
+              bg_color: 0xFFFFFF
+              border_width: 0
+              pad_all: 14
+              widgets:
+                - meter:
+                    height: 100%
+                    width: 100%
+                    border_width: 0
+                    align: CENTER
+                    bg_opa: TRANSP
+                    scales:
+                      - range_from: -15
+                        range_to: 35
+                        angle_range: 180
+                        ticks:
+                          count: 70
+                          width: 1
+                          length: 31
+                        indicators:
+                          - tick_style:
+                              start_value: -15
+                              end_value: 35
+                              color_start: 0x3399ff
+                              color_end: 0xffcc66
+                      - range_from: -150
+                        range_to: 350
+                        angle_range: 180
+                        ticks:
+                          count: 0
+                        indicators:
+                          - line:
+                              id: temperature_needle
+                              width: 8
+                              r_mod: 2
+                              value: -150
+                - obj: # to cover the middle part of meter indicator line
+                    height: 123
+                    width: 123
+                    radius: 73
+                    align: CENTER
+                    border_width: 0
+                    pad_all: 0
+                    bg_color: 0xFFFFFF
+                - label:
+                    id: temperature_text
+                    text: "--.-°C"
+                    align: CENTER
+                    y: -26
+                - label:
+                    text: "Outdoor"
+                    align: CENTER
+                    y: -6

@@ -1,0 +1,53 @@
+{
+  "build_type": "release",
+  "env_name": "air-simulator",
+  "libsource_dirs": [
+    "/Users/jason/M5Stack-Dial-Smart-Button/.esphome/build/air-simulator/lib",
+    "/Users/jason/M5Stack-Dial-Smart-Button/.esphome/build/air-simulator/.piolibdeps/air-simulator",
+    "/Users/jason/.platformio/lib"
+  ],
+  "defines": [
+    "PLATFORMIO=60119",
+    "LV_CONF_H=1",
+    "LV_CONF_PATH=lv_conf.h",
+    "SDL_BYTEORDER=4321",
+    "USE_HOST",
+    "_THREAD_SAFE"
+  ],
+  "includes": {
+    "build": [
+      "/Users/jason/M5Stack-Dial-Smart-Button/.esphome/build/air-simulator/.piolibdeps/air-simulator/lvgl",
+      "/Users/jason/M5Stack-Dial-Smart-Button/.esphome/build/air-simulator/.piolibdeps/air-simulator/lvgl/src",
+      "/opt/homebrew/include/SDL2",
+      "/Users/jason/M5Stack-Dial-Smart-Button/.esphome/build/air-simulator/src"
+    ],
+    "compatlib": [
+      "/Users/jason/M5Stack-Dial-Smart-Button/.esphome/build/air-simulator/.piolibdeps/air-simulator/lvgl",
+      "/Users/jason/M5Stack-Dial-Smart-Button/.esphome/build/air-simulator/.piolibdeps/air-simulator/lvgl/src"
+    ],
+    "toolchain": []
+  },
+  "cc_flags": [
+    "-Wno-sign-compare",
+    "-Wno-unused-but-set-variable",
+    "-Wno-unused-variable",
+    "-fno-exceptions"
+  ],
+  "cxx_flags": [
+    "-std=gnu++20",
+    "-Wno-sign-compare",
+    "-Wno-unused-but-set-variable",
+    "-Wno-unused-variable",
+    "-fno-exceptions"
+  ],
+  "cc_path": "/usr/bin/gcc",
+  "cxx_path": "/usr/bin/g++",
+  "gdb_path": "",
+  "prog_path": "/Users/jason/M5Stack-Dial-Smart-Button/.esphome/build/air-simulator/.pioenvs/air-simulator/program",
+  "svd_path": null,
+  "compiler_type": "clang",
+  "targets": [],
+  "extra": {
+    "flash_images": []
+  }
+}

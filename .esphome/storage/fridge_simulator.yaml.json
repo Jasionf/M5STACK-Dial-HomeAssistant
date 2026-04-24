@@ -1,0 +1,38 @@
+{
+  "storage_version": 1,
+  "name": "fridge-simulator",
+  "friendly_name": null,
+  "comment": null,
+  "esphome_version": "2026.1.1",
+  "src_version": 1,
+  "address": null,
+  "web_port": null,
+  "esp_platform": "HOST",
+  "build_path": "/Users/jason/M5Stack-Dial-Smart-Button/.esphome/build/fridge-simulator",
+  "firmware_bin_path": "/Users/jason/M5Stack-Dial-Smart-Button/.esphome/build/fridge-simulator/.pioenvs/fridge-simulator/firmware.bin",
+  "loaded_integrations": [
+    "color",
+    "display",
+    "esphome",
+    "font",
+    "globals",
+    "host",
+    "image",
+    "key_provider",
+    "lvgl",
+    "mdns",
+    "network",
+    "preferences",
+    "script",
+    "sdl",
+    "substitutions",
+    "touchscreen"
+  ],
+  "loaded_platforms": [
+    "display/sdl",
+    "touchscreen/sdl"
+  ],
+  "no_mdns": false,
+  "framework": "host",
+  "core_platform": "host"
+}
