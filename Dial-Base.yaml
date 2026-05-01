@@ -1,0 +1,221 @@
+# ======================================================================
+# Dial-Base.yaml — M5Stack Dial Smart Button 硬件驱动基础代码
+#
+# 基于 M5Dial Arduino 驱动库 (v1.0.3) 的硬件功能, 使用 ESPHome 内置组件实现
+# 映射关系:
+#   M5Dial.Display (M5GFX)   →  mipi_spi display (GC9A01A)
+#   M5Dial.Touch  (FT6336U)  →  ft5x06 touchscreen (兼容)
+#   M5Dial.Power  (AXP2101)  →  adc 电池电压监测 + deep_sleep
+#   M5Dial.Rtc    (BM8563)   →  pcf8563 time
+#   M5Dial.Speaker           →  ledc output + rtttl
+#   M5Dial.BtnA              →  gpio binary_sensor
+#   M5Dial.Encoder           →  rotary_encoder sensor
+#   M5Dial.Rfid   (MFRC522)  →  rc522_i2c + on_tag / binary_sensor
+#   M5Dial.In_I2C / Ex_I2C   →  i2c bus (internal / external)
+# ======================================================================
+
+# ======================================================================
+# 1. 通信总线 (对应 M5Dial.In_I2C / M5Dial.Ex_I2C / SPI)
+# ======================================================================
+i2c:
+  - id: internal_i2c
+    sda: GPIO11
+    scl: GPIO12
+    frequency: 400kHz
+    scan: true
+  - id: external_i2c
+    sda: GPIO13
+    scl: GPIO15
+    frequency: 400kHz
+    scan: true
+
+spi:
+  id: spi_bus
+  mosi_pin: GPIO5
+  clk_pin: GPIO6
+
+# ======================================================================
+# 2. PWM 输出 — 蜂鸣器 + 屏幕背光
+#    对应 M5Dial.Speaker + 背光控制
+# ======================================================================
+output:
+  - platform: ledc
+    pin: GPIO3
+    id: buzzer
+    frequency: 4000Hz
+  - platform: ledc
+    pin: GPIO9
+    id: backlight_output
+    frequency: 1000Hz
+
+# ======================================================================
+# 3. RTTL 音频播放 (对应 M5Dial.Speaker 的 tone 功能)
+# ======================================================================
+rtttl:
+  output: buzzer
+  id: rtttl_player
+  gain: 0.6
+
+# ======================================================================
+# 4. RC522 NFC/RFID 读卡器 (对应 M5Dial.Rfid → MFRC522)
+#    I2C 地址 = 0x28, 与 M5Dial 库 RC522_I2C_ADDRESS 一致
+#
+#    on_tag: 检测到卡片时触发, x 为十六进制 UID 字符串 ("04-A1-B2-C3")
+#    on_tag_removed: 卡片离开时触发
+#
+#    如需识别特定卡片, 取消 binary_sensor 部分的注释,
+#    填入卡片 UID (格式: "04-A1-B2-C3")
+# ======================================================================
+rc522_i2c:
+  - id: nfc_reader
+    i2c_id: internal_i2c
+    address: 0x28
+    update_interval: 500ms
+    on_tag:
+      - lambda: |-
+          ESP_LOGD("rfid", "Card detected: %s", x.c_str());
+    on_tag_removed:
+      - lambda: |-
+          ESP_LOGD("rfid", "Card removed: %s", x.c_str());
+
+# --- 可选: 注册特定卡片为 binary_sensor ---
+# binary_sensor:
+#   - platform: rc522_i2c
+#     rc522_id: nfc_reader
+#     uid: "XX-XX-XX-XX"
+#     name: "NFC Tag"
+
+
+# ======================================================================
+# 6. 圆形显示屏 (对应 M5Dial.Display / M5Dial.Lcd → M5GFX)
+#    GC9A01A, 240×240 圆形 TFT, MIPI SPI 接口, 40MHz
+# ======================================================================
+display:
+  - platform: mipi_spi
+    id: round_display
+    model: GC9A01A
+    cs_pin: GPIO7
+    reset_pin: GPIO8
+    dc_pin: GPIO4
+    invert_colors: true
+    data_rate: 40MHz
+    update_interval: never
+    auto_clear_enabled: false
+
+# ======================================================================
+# 7. 电容触摸屏 (对应 M5Dial.Touch → FT6336U, 兼容 FT5x06)
+#    I2C 地址 0x38
+#    reset_pin 和 interrupt_pin 为可选, 按需启用
+# ======================================================================
+touchscreen:
+  - platform: ft5x06
+    id: touch
+    i2c_id: internal_i2c
+    address: 0x38
+    # interrupt_pin: GPIOXX
+
+# ======================================================================
+# 8. 灯光系统
+#    8a. 屏幕背光 — 单色 PWM 调光
+#    8b. SK6812 可寻址 LED 灯带 — 30颗, RMT 驱动
+# ======================================================================
+light:
+  - platform: monochromatic
+    name: "Backlight"
+    output: backlight_output
+    id: display_backlight
+    restore_mode: ALWAYS_ON
+    default_transition_length: 300ms
+
+  - platform: esp32_rmt_led_strip
+    rgb_order: GRB
+    pin: GPIO2
+    num_leds: 30
+    chipset: sk6812
+    name: "My Light"
+    id: led_strip
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 0s
+
+# ======================================================================
+# 9. 旋转编码器 (对应 M5Dial.Encoder → ENCODER 类)
+#    GPIO40 = PinA, GPIO41 = PinB, 内部上拉, 4倍正交解码
+#    注意: M5Dial 库定义 DIAL_ENCODER_PIN_A=41, DIAL_ENCODER_PIN_B=40
+#          实际接线可交换 A/B 来改变旋转方向
+# ======================================================================
+sensor:
+  - platform: rotary_encoder
+    id: encoder
+    name: "Rotary Encoder"
+    pin_a:
+      number: GPIO40
+      mode: INPUT_PULLUP
+    pin_b:
+      number: GPIO41
+      mode: INPUT_PULLUP
+    resolution: 4
+    min_value: -32768
+    max_value: 32767
+    publish_initial_value: true
+
+  # --- 可选: 电池电压监测 (对应 M5Dial.Power 电池管理) ---
+  # 使用 ADC 读取电池电压, 通过分压电阻计算实际电压
+  # 取消注释并填写正确的 GPIO 和分压比例
+  # - platform: adc
+  #   id: battery_voltage
+  #   name: "Battery Voltage"
+  #   pin: GPIO35
+  #   attenuation: 11db
+  #   update_interval: 60s
+  #   unit_of_measurement: "V"
+  #   accuracy_decimals: 3
+  #   filters:
+  #     - multiply: 2.0
+
+# ======================================================================
+# 10. GPIO 按键 (对应 M5Dial.BtnA → Button_Class)
+#     front_button: 编码器轴按键, GPIO42, 低电平触发, 内部上拉
+#     hold_button:  背面按键, GPIO46, 高电平触发, 无内部上下拉
+# ======================================================================
+binary_sensor:
+  - platform: gpio
+    name: Button
+    id: front_button
+    pin:
+      number: GPIO42
+      inverted: true
+      mode:
+        input: true
+        pullup: true
+
+  - platform: gpio
+    name: Hold Button
+    id: hold_button
+    pin:
+      number: GPIO46
+      inverted: false
+      mode:
+        input: true
+        pullup: false
+
+# ======================================================================
+# 11. RTC 实时时钟 (对应 M5Dial.Rtc → BM8563 / PCF8563)
+#     I2C 地址 0x51, 由 Home Assistant 时间同步自动写入
+# ======================================================================
+time:
+  - platform: pcf8563
+    id: rtctime
+    i2c_id: internal_i2c
+    address: 0x51
+    update_interval: never
+
+# ======================================================================
+# 12. 深度睡眠 (对应 M5Dial.Power 的 sleep 功能)
+#     取消注释启用定时/按键唤醒
+# ======================================================================
+# deep_sleep:
+#   id: deep_sleep_1
+#   sleep_duration: 30min
+#   wakeup_pin:
+#     number: GPIO42
+#     mode: WAKEUP_ANY_LOW

@@ -1,34 +1,14 @@
-# ═══════════════════════════════════════════════════════════════
-#  dial.yaml  ─  M5Stack Dial · Entry Point
-#
-#  This file owns:
-#    · ESPHome / board / connectivity config
-#    · Boot sequence (on_boot)
-#    · Shared globals, colors, and the logo image asset
-#    · LVGL base settings (display binding, encoders, theme)
-#
-#  All UI pages and hardware drivers are declared in sub-files
-#  and merged automatically by the ESPHome package system.
-#
-#  Package structure:
-#    src/hardware.yaml       ← I²C, SPI, display, touch, light…
-#    src/pages/load.yaml     ← Boot/loading overlay (top_layer)
-#    src/pages/main.yaml     ← Clock page (page_clock)
-#    src/pages/menu.yaml     ← Vertical list menu (page_menu)
-# ═══════════════════════════════════════════════════════════════
-
 packages:
-  hardware:  !include src/main/hardware.yaml
-  load_page: !include src/pages/load.yaml
-  clock_page: !include src/pages/main.yaml
-  menu_page:  !include src/pages/menu.yaml
-  light_page: !include src/pages/light.yaml
-  air_page:   !include src/pages/air.yaml
-  music_page: !include src/pages/music.yaml
+  hardware:    !include src/main/hardware.yaml
+  load_page:   !include src/pages/load.yaml
+  clock_page:  !include src/pages/main.yaml
+  menu_page:   !include src/pages/menu.yaml
+  light_page:  !include src/pages/light.yaml
+  air_page:    !include src/pages/air.yaml
+  music_page:  !include src/pages/music.yaml
   fridge_page: !include src/pages/fridge.yaml
   timer_page:  !include src/pages/timer.yaml
 
-# ── Core ──────────────────────────────────────────────────────
 esphome:
   name: m5stack-dialv1
   friendly_name: M5Stack Dial
@@ -52,10 +32,9 @@ esp32:
 logger:
   level: DEBUG
 
-# ── Connectivity ───────────────────────────────────────────────
 api:
   encryption:
-    key: "wzh2ZJbqp7qEja5lDf8Hfq7Dabmu60FDSdRPRXfcZvQ="
+    key: !secret api_encryption_key
   on_client_connected:
     - if:
         condition:
@@ -73,78 +52,70 @@ api:
 
 ota:
   - platform: esphome
-    password: "67bc085bb265aa2670370e149ea9ba0e"
+    password: !secret ota_password
 
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
   ap:
-    ssid: "Dial Fallback Hotspot"
-    password: "ufoNG0eGiUO7"
+    ssid: !secret ap_ssid
+    password: !secret ap_password
 
-# ── Global state ───────────────────────────────────────────────
 globals:
   - id: ha_connected
     type: bool
     initial_value: 'false'
 
-# ── Images ────────────────────────────────────────────────────
 image:
   - file: src/assets/images/logo.png
     id: logo_img
     type: RGB565
     transparency: alpha_channel
     resize: 72x72
-  - file: "src/assets/images/\u573a\u666f.png"
+  - file: src/assets/images/scene.png
     id: img_scene
     type: RGB565
     transparency: alpha_channel
     resize: 24x24
-  - file: "src/assets/images/\u706f\u6ce1.png"
+  - file: src/assets/images/bulb.png
     id: img_light
     type: RGB565
     transparency: alpha_channel
     resize: 24x24
-  - file: "src/assets/images/\u7a7a\u8c03.png"
+  - file: src/assets/images/ac.png
     id: img_ac
     type: RGB565
     transparency: alpha_channel
     resize: 24x24
-  - file: "src/assets/images/\u97f3\u4e50.png"
+  - file: src/assets/images/music.png
     id: img_music
     type: RGB565
     transparency: alpha_channel
     resize: 24x24
-  - file: "src/assets/images/palette.png"
+  - file: src/assets/images/palette.png
     id: img_palette
     type: RGB565
     transparency: alpha_channel
     resize: 24x24
-  - file: "src/assets/images/brightness.png"
+  - file: src/assets/images/brightness.png
     id: img_brightness
     type: RGB565
     transparency: alpha_channel
     resize: 24x24
-  - file: "src/assets/images/灯光.png"
+  - file: src/assets/images/light.png
     id: img_dengguang
     type: RGB565
     transparency: alpha_channel
     resize: 24x24
-# ── Shared color tokens ────────────────────────────────────────
-#    Page-specific colors live in their respective page files.
+
 color:
   - id: col_bg
-    hex: "060610"    # deep space navy — global background
-
+    hex: "050812"
   - id: col_text_pri
-    hex: "E2E8F0"    # slate-100 — primary text (softer than pure white)
-
+    hex: "EEF2FF"
   - id: col_text_sec
-    hex: "94A3B8"    # slate-400 — secondary / date text
+    hex: "6B7FCC"
 
-# ── LVGL base ─────────────────────────────────────────────────
-#    Displays, encoders, and global theme.
-#    top_layer comes from load.yaml; pages come from main.yaml.
 lvgl:
   displays:
     - round_display
@@ -154,6 +125,5 @@ lvgl:
     - sensor: encoder
       enter_button: front_button
   color_depth: 16
-  # buffer_size: 25%
   bg_color: col_bg
-  default_font: font_lbl   # defined in src/pages/main.yaml
+  default_font: font_lbl

@@ -1,26 +1,3 @@
-# =================================================================
-#  src/pages/timer.yaml  -  Kitchen Timer Page
-#
-#  Target: 240×240 round display (M5Stack Dial)
-#
-#  Layout:
-#    · Black circular background
-#    · Arc ring (232×232) showing remaining-time progress
-#      - green > 50%,  orange 20–50%,  red ≤ 20%
-#    · Large HH:MM:SS monospace time display (near centre)
-#    · 4 touch buttons below time: HR / MIN / SEC / RST
-#
-#  Interaction:
-#    · Tap HR / MIN / SEC  → select unit; encoder adjusts value
-#    · Tap RST             → reset to 00:05:00
-#    · Physical button:
-#        edit mode  → start counting
-#        running    → pause
-#        done       → reset (keep last set values)
-#  Hold button: close → page_clock
-# =================================================================
-
-# ── Colors ────────────────────────────────────────────────────
 color:
   - id: col_timer_bg
     hex: "000000"
@@ -41,9 +18,7 @@ color:
   - id: col_timer_btn_border
     hex: "2d2d2d"
 
-# ── Fonts ──────────────────────────────────────────────────────
 font:
-  # HH:MM:SS monospace countdown
   - file:
       family: Share Tech Mono
       weight: 400
@@ -53,7 +28,6 @@ font:
     bpp: 4
     glyphs: "0123456789:"
 
-  # Button labels  HR / MIN / SEC / RST
   - file:
       family: DM+Sans
       weight: 600
@@ -63,7 +37,6 @@ font:
     bpp: 4
     glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZ "
 
-# ── Globals ────────────────────────────────────────────────────
 globals:
   - id: in_timer
     type: bool
@@ -83,7 +56,6 @@ globals:
   - id: timer_blink
     type: bool
     initial_value: 'true'
-  # -1=none  0=HR  1=MIN  2=SEC
   - id: timer_unit
     type: int
     initial_value: '-1'
@@ -97,7 +69,6 @@ globals:
     type: int
     initial_value: '0'
 
-# ── 1-second interval: tick + done-blink ──────────────────────
 interval:
   - interval: 1s
     then:
@@ -117,9 +88,7 @@ interval:
             id(refresh_timer).execute();
           }
 
-# ── Scripts ────────────────────────────────────────────────────
 script:
-  # ---- open / close ----
   - id: open_timer
     then:
       - globals.set: {id: in_timer,  value: 'true'}
@@ -135,7 +104,6 @@ script:
       - globals.set: {id: timer_running, value: 'false'}
       - script.execute: open_menu
 
-  # ---- physical button: start / pause / reset-when-done ----
   - id: timer_toggle
     then:
       - lambda: |-
@@ -159,7 +127,6 @@ script:
           }
       - script.execute: refresh_timer
 
-  # ---- encoder: adjust selected unit (ignored when running/done) ----
   - id: timer_encoder_up
     then:
       - lambda: |-
@@ -180,7 +147,6 @@ script:
           else if (u == 2) id(timer_set_s) = ((id(timer_set_s) - 1) % 60 + 60) % 60;
       - script.execute: refresh_timer
 
-  # ---- refresh all visuals ----
   - id: refresh_timer
     then:
       - lambda: |-
@@ -252,7 +218,6 @@ script:
                 active ? accent : lv_color_hex(0x555555), 0);
           }
 
-# ── LVGL page ──────────────────────────────────────────────────
 lvgl:
   pages:
     - id: page_timer
@@ -260,7 +225,6 @@ lvgl:
       bg_opa: COVER
       scrollbar_mode: "OFF"
       widgets:
-        # Clipped round container — keeps arcs inside the circle
         - obj:
             align: TOP_LEFT
             x: 0
@@ -276,8 +240,6 @@ lvgl:
             scrollbar_mode: "OFF"
             widgets:
 
-              # ── Countdown arc ring ───────────────────────────
-              # value=100 → full ring; value=0 → empty.
               - arc:
                   id: arc_timer
                   align: CENTER
@@ -306,8 +268,6 @@ lvgl:
                     width: 0
                     height: 0
 
-              # ── HH:MM:SS countdown ───────────────────────────
-              # 42px monospace font, slightly above centre
               - label:
                   id: lbl_timer_time
                   align: CENTER
@@ -315,14 +275,6 @@ lvgl:
                   text: "00:05:00"
                   text_font: font_timer_time
                   text_color: 0xFFFFFF
-
-              # ── Control buttons ──────────────────────────────
-              # 4 buttons: HR  MIN  SEC  RST
-              # width=38  height=22  gap=5
-              # total span = 4×38 + 3×5 = 167px
-              # centres from display centre:
-              #   HR: -65   MIN: -22   SEC: +21   RST: +64
-              # y=24; bottom at abs 155 — chord ≈ 204px inward, fits.
 
               - obj:
                   id: btn_timer_h

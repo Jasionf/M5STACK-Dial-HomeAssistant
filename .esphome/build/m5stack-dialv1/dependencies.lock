@@ -1,4 +1,48 @@
 dependencies:
+  bblanchon/arduinojson:
+    component_hash: b1c2f0b0bc26969af19809cee80b220fb882481d59cc75f8e79ebceecdc69f06
+    dependencies: []
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    version: 7.4.2
+  esphome/esp-audio-libs:
+    component_hash: 0ee2b8c9f687e5f8d67c72f1430ab37ddb7a128cf5f8da201a6a21694b48bdfe
+    dependencies: []
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    version: 2.0.3
+  esphome/micro-opus:
+    component_hash: 36c51485ae134e40b1541b680cc54b44220ebe6e2a075cd08d864744e60a8a39
+    dependencies:
+    - name: idf
+      require: private
+      version: '>=4.4'
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    version: 0.3.5
+  espressif/esp-dsp:
+    component_hash: 939e9c053487d6e7b7320a5cb761b2200e4b331730d6721668755ef76ab9f067
+    dependencies:
+    - name: idf
+      require: private
+      version: '>=4.2'
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    version: 1.7.1
+  espressif/esp_websocket_client:
+    component_hash: c5a067a9fddea370c478017e66fac302f4b79c3d4027e9bdd42a019786cceb92
+    dependencies:
+    - name: idf
+      require: private
+      version: '>=5.0'
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    version: 1.6.1
   espressif/mdns:
     component_hash: 043f989435fd88f771c70507bfde854380c259a8fec8c0d60bcfd8714f16960e
     dependencies:
@@ -14,7 +58,12 @@ dependencies:
       type: idf
     version: 5.5.3
 direct_dependencies:
+- bblanchon/arduinojson
+- esphome/esp-audio-libs
+- esphome/micro-opus
+- espressif/esp-dsp
+- espressif/esp_websocket_client
 - espressif/mdns
-manifest_hash: 95928a846da3d2720d7b36633020e7a88783eb333ddc069552562fefc3e5abb4
+manifest_hash: a713f7522b4af21d0bd72e11464c89ab9f29d39f67e2299a8f6c8dcb369dee1e
 target: esp32s3
 version: 2.0.0

@@ -1,2 +1,3 @@
-esphome/noise-c@0.1.11
+JPEGDEC=https://github.com/bitbank2/JPEGDEC#1.8.4
 lvgl/lvgl@8.4.0
+esphome/noise-c@0.1.11

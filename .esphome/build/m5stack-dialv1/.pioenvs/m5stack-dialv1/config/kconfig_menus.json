@@ -20989,6 +20989,64 @@
                     {
                         "children": [],
                         "depends_on": null,
+                        "help": "This option will enable https protocol by linking esp-tls library and initializing SSL transport",
+                        "id": "ESP_HTTP_CLIENT_ENABLE_HTTPS",
+                        "name": "ESP_HTTP_CLIENT_ENABLE_HTTPS",
+                        "range": null,
+                        "title": "Enable https",
+                        "type": "bool"
+                    },
+                    {
+                        "children": [],
+                        "depends_on": null,
+                        "help": "This option will enable HTTP Basic Authentication. It is disabled by default as Basic\nauth uses unencrypted encoding, so it introduces a vulnerability when not using TLS",
+                        "id": "ESP_HTTP_CLIENT_ENABLE_BASIC_AUTH",
+                        "name": "ESP_HTTP_CLIENT_ENABLE_BASIC_AUTH",
+                        "range": null,
+                        "title": "Enable HTTP Basic Authentication",
+                        "type": "bool"
+                    },
+                    {
+                        "children": [],
+                        "depends_on": null,
+                        "help": "This option will enable HTTP Digest Authentication. It is enabled by default, but use of this\nconfiguration is not recommended as the password can be derived from the exchange, so it introduces\na vulnerability when not using TLS",
+                        "id": "ESP_HTTP_CLIENT_ENABLE_DIGEST_AUTH",
+                        "name": "ESP_HTTP_CLIENT_ENABLE_DIGEST_AUTH",
+                        "range": null,
+                        "title": "Enable HTTP Digest Authentication",
+                        "type": "bool"
+                    },
+                    {
+                        "children": [],
+                        "depends_on": null,
+                        "help": "This option will enable injection of a custom tcp_transport handle, so the http operation\nwill be performed on top of the user defined transport abstraction (if configured)",
+                        "id": "ESP_HTTP_CLIENT_ENABLE_CUSTOM_TRANSPORT",
+                        "name": "ESP_HTTP_CLIENT_ENABLE_CUSTOM_TRANSPORT",
+                        "range": null,
+                        "title": "Enable custom transport",
+                        "type": "bool"
+                    },
+                    {
+                        "children": [],
+                        "depends_on": null,
+                        "help": "This config option helps in setting the time in millisecond to wait for event to be posted to the\nsystem default event loop. Set it to -1 if you need to set timeout to portMAX_DELAY.",
+                        "id": "ESP_HTTP_CLIENT_EVENT_POST_TIMEOUT",
+                        "name": "ESP_HTTP_CLIENT_EVENT_POST_TIMEOUT",
+                        "range": null,
+                        "title": "Time in millisecond to wait for posting event",
+                        "type": "int"
+                    }
+                ],
+                "depends_on": null,
+                "id": "component-config-esp-http-client",
+                "title": "ESP HTTP client",
+                "type": "menu"
+            },
+            {
+                "children": [
+                    {
+                        "children": [],
+                        "depends_on": null,
                         "help": "This sets the default limit for the HTTP request header length. The limit can be\nconfigured at run time by setting max_req_hdr_len member of httpd_config_t structure.\nThe memory allocated will depend on the actual header length. Hence keeping a sufficiently\nlarge max header length is recommended.",
                         "id": "HTTPD_MAX_REQ_HDR_LEN",
                         "name": "HTTPD_MAX_REQ_HDR_LEN",
@@ -33350,6 +33408,464 @@
                 "depends_on": null,
                 "id": "component-config-virtual-file-system",
                 "title": "Virtual file system",
+                "type": "menu"
+            },
+            {
+                "children": [
+                    {
+                        "children": [],
+                        "depends_on": null,
+                        "help": null,
+                        "id": "OPUS_COMPONENT",
+                        "name": "OPUS_COMPONENT",
+                        "range": null,
+                        "title": null,
+                        "type": "bool"
+                    },
+                    {
+                        "children": [
+                            {
+                                "children": [],
+                                "depends_on": "<choice OPUS_ALLOCATION_MODE>",
+                                "help": "Uses pthread thread-local storage to provide thread-safe\npseudostack allocation. Each thread gets its own 120KB\npseudostack (allocated from PSRAM when available). Safe for\nconcurrent Opus use from multiple FreeRTOS tasks. Automatic\ncleanup when tasks exit.",
+                                "id": "OPUS_THREADSAFE_PSEUDOSTACK",
+                                "name": "OPUS_THREADSAFE_PSEUDOSTACK",
+                                "range": null,
+                                "title": "Thread-safe pseudostack (pthread TLS)",
+                                "type": "bool"
+                            },
+                            {
+                                "children": [],
+                                "depends_on": "<choice OPUS_ALLOCATION_MODE>",
+                                "help": "Original Opus pseudostack implementation using global variables.\nNOT thread-safe - do not use Opus concurrently from multiple\ntasks with this mode. Single 120KB pseudostack shared globally.",
+                                "id": "OPUS_NONTHREADSAFE_PSEUDOSTACK",
+                                "name": "OPUS_NONTHREADSAFE_PSEUDOSTACK",
+                                "range": null,
+                                "title": "Non-threadsafe pseudostack (original)",
+                                "type": "bool"
+                            },
+                            {
+                                "children": [],
+                                "depends_on": "<choice OPUS_ALLOCATION_MODE>",
+                                "help": "Uses alloca() for temporary allocations on the task stack.\nRequires larger task stack sizes (~120KB additional per task).\nThread-safe but memory-intensive.",
+                                "id": "OPUS_USE_ALLOCA",
+                                "name": "OPUS_USE_ALLOCA",
+                                "range": null,
+                                "title": "Stack allocation (alloca)",
+                                "type": "bool"
+                            }
+                        ],
+                        "depends_on": null,
+                        "help": "Select the temporary memory allocation strategy for Opus:\n\n- Thread-safe pseudostack (recommended): Uses pthread thread-local\n  storage to provide a separate 120KB pseudostack per thread. Safe\n  for concurrent use from multiple FreeRTOS tasks. Automatically\n  uses PSRAM when available.\n\n- Non-threadsafe pseudostack: Original Opus implementation using\n  global variables. NOT safe for concurrent use from multiple tasks.\n  Only use if you guarantee single-threaded Opus access.\n\n- alloca: Uses stack-based allocation. Requires larger task stack\n  sizes (add ~120KB per task using Opus).",
+                        "id": "component-config-opus-audio-codec-memory-allocation-mode",
+                        "name": "OPUS_ALLOCATION_MODE",
+                        "title": "Memory allocation mode",
+                        "type": "choice"
+                    },
+                    {
+                        "children": [],
+                        "depends_on": "OPUS_THREADSAFE_PSEUDOSTACK || OPUS_NONTHREADSAFE_PSEUDOSTACK",
+                        "help": "Configure the size of the pseudostack buffer used for temporary\nmemory allocations during Opus encoding/decoding.\n\nDefault: 120000 bytes (120KB)\nRange: 60000 to 240000 bytes (60KB to 240KB)\n\nFor THREADSAFE_PSEUDOSTACK mode, each thread gets its own buffer\nof this size (allocated from PSRAM when available).\n\nFor NONTHREADSAFE_PSEUDOSTACK mode, there is one global buffer\nof this size.\n\nWhen to increase:\n- If you encounter \"pseudostack overflow\" errors, increase this value\n- Complex encoding scenarios may require more memory\n- Typical range: 100KB-150KB\n\nWhen to decrease:\n- To reduce memory usage if PSRAM is limited\n- Only decrease if you're sure your use case doesn't overflow\n- Monitor for \"pseudostack overflow\" errors after decreasing\n\nNote: This option only applies to pseudostack allocation modes.\nThe USE_ALLOCA mode allocates memory on the task stack instead.",
+                        "id": "OPUS_PSEUDOSTACK_SIZE",
+                        "name": "OPUS_PSEUDOSTACK_SIZE",
+                        "range": [
+                            60000,
+                            240000
+                        ],
+                        "title": "Pseudostack size (bytes)",
+                        "type": "int"
+                    },
+                    {
+                        "children": [
+                            {
+                                "children": [],
+                                "depends_on": "<choice OPUS_STATE_MEMORY_PREFERENCE>",
+                                "help": "Try to allocate from PSRAM first. If PSRAM allocation fails or\nis unavailable, fall back to internal RAM.\n\nRecommended for most use cases to conserve internal RAM.",
+                                "id": "OPUS_STATE_PREFER_PSRAM",
+                                "name": "OPUS_STATE_PREFER_PSRAM",
+                                "range": null,
+                                "title": "Prefer PSRAM, fall back to internal RAM",
+                                "type": "bool"
+                            },
+                            {
+                                "children": [],
+                                "depends_on": "<choice OPUS_STATE_MEMORY_PREFERENCE>",
+                                "help": "Try to allocate from internal RAM first. If internal RAM\nallocation fails, fall back to PSRAM.\n\nMay provide slightly better performance at the cost of using\nmore internal RAM.",
+                                "id": "OPUS_STATE_PREFER_INTERNAL",
+                                "name": "OPUS_STATE_PREFER_INTERNAL",
+                                "range": null,
+                                "title": "Prefer internal RAM, fall back to PSRAM",
+                                "type": "bool"
+                            },
+                            {
+                                "children": [],
+                                "depends_on": "<choice OPUS_STATE_MEMORY_PREFERENCE>",
+                                "help": "Only allocate from PSRAM. If PSRAM is not available or allocation\nfails, opus_encoder_create() / opus_decoder_create() will fail.",
+                                "id": "OPUS_STATE_PSRAM_ONLY",
+                                "name": "OPUS_STATE_PSRAM_ONLY",
+                                "range": null,
+                                "title": "PSRAM only (fail if unavailable)",
+                                "type": "bool"
+                            },
+                            {
+                                "children": [],
+                                "depends_on": "<choice OPUS_STATE_MEMORY_PREFERENCE>",
+                                "help": "Never use PSRAM for state/tables allocation. Only use internal RAM.\nUses approximately 30-50KB of internal RAM per encoder/decoder\ninstance plus shared tables.",
+                                "id": "OPUS_STATE_INTERNAL_ONLY",
+                                "name": "OPUS_STATE_INTERNAL_ONLY",
+                                "range": null,
+                                "title": "Internal RAM only",
+                                "type": "bool"
+                            }
+                        ],
+                        "depends_on": null,
+                        "help": "Choose memory allocation preference for Opus encoder/decoder state,\nCELT mode tables, FFT twiddle factors, and other persistent buffers.\n\nThese structures are allocated once and accessed moderately during\nencoding/decoding. Total size is typically 30-50KB per instance plus\nshared tables.\n\n- Prefer PSRAM: Saves internal RAM, slight performance penalty\n- Prefer internal: Better performance, uses precious internal RAM\n- PSRAM only: Fails if PSRAM unavailable\n- Internal only: Never uses PSRAM",
+                        "id": "component-config-opus-audio-codec-memory-preference-for-opus-state-and-tables",
+                        "name": "OPUS_STATE_MEMORY_PREFERENCE",
+                        "title": "Memory preference for Opus state and tables",
+                        "type": "choice"
+                    },
+                    {
+                        "children": [
+                            {
+                                "children": [],
+                                "depends_on": "<choice OPUS_PSEUDOSTACK_MEMORY_PREFERENCE>",
+                                "help": "Try to allocate pseudostack from PSRAM first. If PSRAM allocation\nfails or is unavailable, fall back to internal RAM.\n\nRecommended for most use cases to conserve internal RAM.",
+                                "id": "OPUS_PSEUDOSTACK_PREFER_PSRAM",
+                                "name": "OPUS_PSEUDOSTACK_PREFER_PSRAM",
+                                "range": null,
+                                "title": "Prefer PSRAM, fall back to internal RAM",
+                                "type": "bool"
+                            },
+                            {
+                                "children": [],
+                                "depends_on": "<choice OPUS_PSEUDOSTACK_MEMORY_PREFERENCE>",
+                                "help": "Try to allocate pseudostack from internal RAM first. If internal\nRAM allocation fails, fall back to PSRAM.\n\nUses significant internal RAM (120KB+ per thread for THREADSAFE\nmode, 120KB total for NONTHREADSAFE mode).",
+                                "id": "OPUS_PSEUDOSTACK_PREFER_INTERNAL",
+                                "name": "OPUS_PSEUDOSTACK_PREFER_INTERNAL",
+                                "range": null,
+                                "title": "Prefer internal RAM, fall back to PSRAM",
+                                "type": "bool"
+                            },
+                            {
+                                "children": [],
+                                "depends_on": "<choice OPUS_PSEUDOSTACK_MEMORY_PREFERENCE>",
+                                "help": "Only allocate pseudostack from PSRAM. If PSRAM is not available\nor allocation fails, Opus initialization will fail.",
+                                "id": "OPUS_PSEUDOSTACK_PSRAM_ONLY",
+                                "name": "OPUS_PSEUDOSTACK_PSRAM_ONLY",
+                                "range": null,
+                                "title": "PSRAM only (fail if unavailable)",
+                                "type": "bool"
+                            },
+                            {
+                                "children": [],
+                                "depends_on": "<choice OPUS_PSEUDOSTACK_MEMORY_PREFERENCE>",
+                                "help": "Never use PSRAM for pseudostack. Only use internal RAM.\nUses 120KB+ of internal RAM per thread (THREADSAFE mode) or\n120KB total (NONTHREADSAFE mode).",
+                                "id": "OPUS_PSEUDOSTACK_INTERNAL_ONLY",
+                                "name": "OPUS_PSEUDOSTACK_INTERNAL_ONLY",
+                                "range": null,
+                                "title": "Internal RAM only",
+                                "type": "bool"
+                            }
+                        ],
+                        "depends_on": "OPUS_THREADSAFE_PSEUDOSTACK || OPUS_NONTHREADSAFE_PSEUDOSTACK",
+                        "help": "Choose memory allocation preference for the pseudostack working memory.\n\nThe pseudostack is heavily accessed during encode/decode operations for\ntemporary allocations. It is accessed hundreds of times per frame.\n\nMemory tradeoff:\n- Prefer internal RAM: Uses 120KB+ internal RAM\n- Prefer PSRAM: Conserves internal RAM\n\nFor THREADSAFE mode: Each thread gets its own buffer\nFor NONTHREADSAFE mode: One global buffer is shared",
+                        "id": "component-config-opus-audio-codec-memory-preference-for-pseudostack-working-memory-",
+                        "name": "OPUS_PSEUDOSTACK_MEMORY_PREFERENCE",
+                        "title": "Memory preference for pseudostack (working memory)",
+                        "type": "choice"
+                    },
+                    {
+                        "children": [
+                            {
+                                "children": [],
+                                "depends_on": "<choice OPUS_OGG_DECODER_MEMORY_PREFERENCE>",
+                                "help": "Try to allocate Ogg decoder buffers from PSRAM first. If PSRAM\nallocation fails or is unavailable, fall back to internal RAM.\n\nRecommended for most use cases to conserve internal RAM.",
+                                "id": "OPUS_OGG_DECODER_PREFER_PSRAM",
+                                "name": "OPUS_OGG_DECODER_PREFER_PSRAM",
+                                "range": null,
+                                "title": "Prefer PSRAM, fall back to internal RAM",
+                                "type": "bool"
+                            },
+                            {
+                                "children": [],
+                                "depends_on": "<choice OPUS_OGG_DECODER_MEMORY_PREFERENCE>",
+                                "help": "Try to allocate Ogg decoder buffers from internal RAM first.\nIf internal RAM allocation fails, fall back to PSRAM.\n\nMay provide slightly better performance for streaming decode.",
+                                "id": "OPUS_OGG_DECODER_PREFER_INTERNAL",
+                                "name": "OPUS_OGG_DECODER_PREFER_INTERNAL",
+                                "range": null,
+                                "title": "Prefer internal RAM, fall back to PSRAM",
+                                "type": "bool"
+                            },
+                            {
+                                "children": [],
+                                "depends_on": "<choice OPUS_OGG_DECODER_MEMORY_PREFERENCE>",
+                                "help": "Only allocate Ogg decoder buffers from PSRAM. If PSRAM is not\navailable or allocation fails, the decoder will fail to initialize.",
+                                "id": "OPUS_OGG_DECODER_PSRAM_ONLY",
+                                "name": "OPUS_OGG_DECODER_PSRAM_ONLY",
+                                "range": null,
+                                "title": "PSRAM only (fail if unavailable)",
+                                "type": "bool"
+                            },
+                            {
+                                "children": [],
+                                "depends_on": "<choice OPUS_OGG_DECODER_MEMORY_PREFERENCE>",
+                                "help": "Never use PSRAM for Ogg decoder buffers. Only use internal RAM.\nThe Ogg demuxer may use up to 65KB for packet buffering.",
+                                "id": "OPUS_OGG_DECODER_INTERNAL_ONLY",
+                                "name": "OPUS_OGG_DECODER_INTERNAL_ONLY",
+                                "range": null,
+                                "title": "Internal RAM only",
+                                "type": "bool"
+                            }
+                        ],
+                        "depends_on": null,
+                        "help": "Choose memory allocation preference for the OggOpusDecoder internal\nbuffers. This affects the Ogg demuxer buffer which can grow up to 65KB.\n\n- Prefer PSRAM: Conserves internal RAM, uses PSRAM when available\n- Prefer internal: Better performance, uses internal RAM first\n- PSRAM only: Fails if PSRAM unavailable\n- Internal only: Never uses PSRAM",
+                        "id": "component-config-opus-audio-codec-memory-preference-for-ogg-opus-decoder-buffers",
+                        "name": "OPUS_OGG_DECODER_MEMORY_PREFERENCE",
+                        "title": "Memory preference for Ogg Opus decoder buffers",
+                        "type": "choice"
+                    },
+                    {
+                        "children": [],
+                        "depends_on": null,
+                        "help": "Enable floating-point implementation instead of fixed-point.\n\nEnabled by default only on ESP32 and ESP32-S3 which have hardware FPU.\nFloating-point is faster on these platforms due to hardware FPU support.\n\nCan be enabled on other platforms if they have FPU support. The user\nis responsible to set this appropriately for their specific target.",
+                        "id": "OPUS_FLOATING_POINT",
+                        "name": "OPUS_FLOATING_POINT",
+                        "range": null,
+                        "title": "Enable floating-point implementation",
+                        "type": "bool"
+                    },
+                    {
+                        "children": [],
+                        "depends_on": null,
+                        "help": "Enable Xtensa LX6/LX7 assembly optimizations for CELT and SILK.\n\nThese optimizations use Xtensa-specific instructions (mulsh, clamps,\nMAC unit) available on ESP32 and ESP32-S3. Enabled by default on\nthese platforms.\n\nDisable this to use the generic C implementation, which may be useful\nfor debugging or benchmarking comparisons.",
+                        "id": "OPUS_ENABLE_XTENSA_OPTIMIZATIONS",
+                        "name": "OPUS_ENABLE_XTENSA_OPTIMIZATIONS",
+                        "range": null,
+                        "title": "Enable Xtensa assembly optimizations",
+                        "type": "bool"
+                    },
+                    {
+                        "children": [],
+                        "depends_on": null,
+                        "help": "Enable timing instrumentation for the CELT decoder to measure\nperformance of each decoding stage. Timing statistics are printed\nevery 200 decoded frames showing microseconds spent in:\n- Entropy decoding (bitstream parsing)\n- PVQ decoding (pyramid vector quantization)\n- Energy finalization\n- Synthesis (IMDCT)\n- Post-filtering\n- Deemphasis\n\nThis is useful for profiling and optimization on ESP32.\nThe overhead is minimal (< 1% performance impact).",
+                        "id": "OPUS_ENABLE_CELT_TIMING",
+                        "name": "OPUS_ENABLE_CELT_TIMING",
+                        "range": null,
+                        "title": "Enable CELT decoder timing measurements",
+                        "type": "bool"
+                    },
+                    {
+                        "children": [],
+                        "depends_on": null,
+                        "help": "Enable fine-grained timing measurements of PVQ (Pyramid Vector\nQuantization) decoding stages. Provides detailed breakdown of:\n- Pulse decoding (decode_pulses)\n- Residual normalization (normalise_residual)\n- Rotation (exp_rotation and exp_rotation1)\n- Collapse mask extraction\n\nTiming statistics are printed every 200 PVQ decode calls.\nThis helps identify bottlenecks within the PVQ algorithm itself.\n\nNote: This is separate from OPUS_ENABLE_CELT_TIMING which measures\nhigher-level decoder stages. Enable both for complete profiling.\n\nRecommended for optimization work on PVQ performance.\nOverhead is minimal (< 1% performance impact).",
+                        "id": "OPUS_ENABLE_PVQ_TIMING",
+                        "name": "OPUS_ENABLE_PVQ_TIMING",
+                        "range": null,
+                        "title": "Enable detailed PVQ decoding timing measurements",
+                        "type": "bool"
+                    },
+                    {
+                        "children": [],
+                        "depends_on": null,
+                        "help": "Enable detailed timing measurements of the quant_all_bands function\nwhich performs band quantization (encoding) or unquantization (decoding).\nThis provides a complete breakdown of where time is spent including:\n- quant_band/quant_band_stereo calls\n- alg_unquant (PVQ decoding)\n  - decode_pulses (pulse decoding)\n  - normalise_residual (normalization)\n  - exp_rotation (rotation transforms)\n- Stereo processing (split/merge, itheta)\n- Other overhead\n\nReports both per-frame totals and per-band averages.\nTiming statistics are printed every 100 decoded frames.\n\nThis is the most comprehensive profiling option and helps identify\nbottlenecks across the entire band quantization process.\n\nOverhead is minimal (< 1% performance impact).",
+                        "id": "OPUS_ENABLE_QUANT_BANDS_TIMING",
+                        "name": "OPUS_ENABLE_QUANT_BANDS_TIMING",
+                        "range": null,
+                        "title": "Enable quant_all_bands timing measurements",
+                        "type": "bool"
+                    }
+                ],
+                "depends_on": null,
+                "id": "component-config-opus-audio-codec",
+                "title": "Opus Audio Codec",
+                "type": "menu"
+            },
+            {
+                "children": [
+                    {
+                        "children": [],
+                        "depends_on": "IDF_TARGET_ESP32 || IDF_TARGET_ESP32S3 || IDF_TARGET_ESP32P4",
+                        "help": null,
+                        "id": "DSP_OPTIMIZATIONS_SUPPORTED",
+                        "name": "DSP_OPTIMIZATIONS_SUPPORTED",
+                        "range": null,
+                        "title": null,
+                        "type": "bool"
+                    },
+                    {
+                        "children": [
+                            {
+                                "children": [],
+                                "depends_on": "<choice DSP_OPTIMIZATION>",
+                                "help": null,
+                                "id": "DSP_ANSI",
+                                "name": "DSP_ANSI",
+                                "range": null,
+                                "title": "ANSI C",
+                                "type": "bool"
+                            },
+                            {
+                                "children": [],
+                                "depends_on": "DSP_OPTIMIZATIONS_SUPPORTED && <choice DSP_OPTIMIZATION>",
+                                "help": null,
+                                "id": "DSP_OPTIMIZED",
+                                "name": "DSP_OPTIMIZED",
+                                "range": null,
+                                "title": "Optimized",
+                                "type": "bool"
+                            }
+                        ],
+                        "depends_on": null,
+                        "help": "An ANSI C version could be used for verification and debug purpose,\nor for chips where an optimized version is not available.",
+                        "id": "component-config-dsp-library-dsp-optimization",
+                        "name": "DSP_OPTIMIZATION",
+                        "title": "DSP Optimization",
+                        "type": "choice"
+                    },
+                    {
+                        "children": [],
+                        "depends_on": null,
+                        "help": null,
+                        "id": "DSP_OPTIMIZATION",
+                        "name": "DSP_OPTIMIZATION",
+                        "range": null,
+                        "title": null,
+                        "type": "int"
+                    },
+                    {
+                        "children": [
+                            {
+                                "children": [],
+                                "depends_on": "<choice DSP_MAX_FFT_SIZE>",
+                                "help": null,
+                                "id": "DSP_MAX_FFT_SIZE_512",
+                                "name": "DSP_MAX_FFT_SIZE_512",
+                                "range": null,
+                                "title": "512",
+                                "type": "bool"
+                            },
+                            {
+                                "children": [],
+                                "depends_on": "<choice DSP_MAX_FFT_SIZE>",
+                                "help": null,
+                                "id": "DSP_MAX_FFT_SIZE_1024",
+                                "name": "DSP_MAX_FFT_SIZE_1024",
+                                "range": null,
+                                "title": "1024",
+                                "type": "bool"
+                            },
+                            {
+                                "children": [],
+                                "depends_on": "<choice DSP_MAX_FFT_SIZE>",
+                                "help": null,
+                                "id": "DSP_MAX_FFT_SIZE_2048",
+                                "name": "DSP_MAX_FFT_SIZE_2048",
+                                "range": null,
+                                "title": "2048",
+                                "type": "bool"
+                            },
+                            {
+                                "children": [],
+                                "depends_on": "<choice DSP_MAX_FFT_SIZE>",
+                                "help": null,
+                                "id": "DSP_MAX_FFT_SIZE_4096",
+                                "name": "DSP_MAX_FFT_SIZE_4096",
+                                "range": null,
+                                "title": "4096",
+                                "type": "bool"
+                            },
+                            {
+                                "children": [],
+                                "depends_on": "<choice DSP_MAX_FFT_SIZE>",
+                                "help": null,
+                                "id": "DSP_MAX_FFT_SIZE_8192",
+                                "name": "DSP_MAX_FFT_SIZE_8192",
+                                "range": null,
+                                "title": "8192",
+                                "type": "bool"
+                            },
+                            {
+                                "children": [],
+                                "depends_on": "<choice DSP_MAX_FFT_SIZE>",
+                                "help": null,
+                                "id": "DSP_MAX_FFT_SIZE_16384",
+                                "name": "DSP_MAX_FFT_SIZE_16384",
+                                "range": null,
+                                "title": "16384",
+                                "type": "bool"
+                            },
+                            {
+                                "children": [],
+                                "depends_on": "<choice DSP_MAX_FFT_SIZE>",
+                                "help": null,
+                                "id": "DSP_MAX_FFT_SIZE_32768",
+                                "name": "DSP_MAX_FFT_SIZE_32768",
+                                "range": null,
+                                "title": "32768",
+                                "type": "bool"
+                            }
+                        ],
+                        "depends_on": null,
+                        "help": "This is default FFT size for internal usage.",
+                        "id": "component-config-dsp-library-maximum-fft-length",
+                        "name": "DSP_MAX_FFT_SIZE",
+                        "title": "Maximum FFT length",
+                        "type": "choice"
+                    },
+                    {
+                        "children": [],
+                        "depends_on": null,
+                        "help": null,
+                        "id": "DSP_MAX_FFT_SIZE",
+                        "name": "DSP_MAX_FFT_SIZE",
+                        "range": null,
+                        "title": null,
+                        "type": "int"
+                    }
+                ],
+                "depends_on": null,
+                "id": "component-config-dsp-library",
+                "title": "DSP Library",
+                "type": "menu"
+            },
+            {
+                "children": [
+                    {
+                        "children": [],
+                        "depends_on": null,
+                        "help": "Enable this option will reallocated buffer when send or receive data and free them when end of use.\nThis can save about 2 KB memory when no websocket data send and receive.",
+                        "id": "ESP_WS_CLIENT_ENABLE_DYNAMIC_BUFFER",
+                        "name": "ESP_WS_CLIENT_ENABLE_DYNAMIC_BUFFER",
+                        "range": null,
+                        "title": "Enable websocket client dynamic buffer for send and receive data",
+                        "type": "bool"
+                    },
+                    {
+                        "children": [
+                            {
+                                "children": [],
+                                "depends_on": "ESP_WS_CLIENT_SEPARATE_TX_LOCK",
+                                "help": "Timeout for acquiring the TX lock when using separate TX lock.",
+                                "id": "ESP_WS_CLIENT_TX_LOCK_TIMEOUT_MS",
+                                "name": "ESP_WS_CLIENT_TX_LOCK_TIMEOUT_MS",
+                                "range": null,
+                                "title": "TX lock timeout in milliseconds",
+                                "type": "int"
+                            }
+                        ],
+                        "depends_on": null,
+                        "help": "Enable this option will use separate lock for send and receive data.\nThis can avoid the lock contention when send and receive data at the same time.",
+                        "id": "ESP_WS_CLIENT_SEPARATE_TX_LOCK",
+                        "name": "ESP_WS_CLIENT_SEPARATE_TX_LOCK",
+                        "range": null,
+                        "title": "Enable separate tx lock for send and receive data",
+                        "type": "bool"
+                    }
+                ],
+                "depends_on": null,
+                "id": "component-config-esp-websocket-client",
+                "title": "ESP WebSocket client",
                 "type": "menu"
             },
             {

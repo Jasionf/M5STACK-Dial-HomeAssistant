@@ -1,18 +1,3 @@
-# =================================================================
-#  src/pages/air.yaml - Air Conditioner Control Page (new UI)
-#
-#  Visual target:
-#    - Main circular gradient ring (meter tick_style)
-#    - Small red arc: indoor temperature
-#    - Small blue arc: indoor humidity
-#    - Right-bottom segmented arc: fan speed
-#    - Bottom 3 icon buttons: fan / power / swing
-#
-#  Existing interfaces are kept:
-#    open_air, close_air, air_temp_up/down, air_fan_up/down,
-#    air_toggle_mode, refresh_air, in_air, air_mode, air_fan_speed.
-# =================================================================
-
 font:
   - file:
       family: DM+Sans
@@ -39,37 +24,37 @@ font:
     glyphs: "\xc2\xb0"
 
 image:
-  - file: "src/assets/images/air_page/操作_风速off.png"
+  - file: src/assets/images/air_page/fan_off.png
     id: img_air_fan_off
     type: RGB565
     transparency: alpha_channel
     resize: 25x25
 
-  - file: "src/assets/images/air_page/操作_风速open.png"
+  - file: src/assets/images/air_page/fan_on.png
     id: img_air_fan_on
     type: RGB565
     transparency: alpha_channel
     resize: 25x25
 
-  - file: "src/assets/images/air_page/开关off.png"
+  - file: src/assets/images/air_page/power_off.png
     id: img_air_power_off
     type: RGB565
     transparency: alpha_channel
     resize: 25x25
 
-  - file: "src/assets/images/air_page/开关open.png"
+  - file: src/assets/images/air_page/power_on.png
     id: img_air_power_on
     type: RGB565
     transparency: alpha_channel
     resize: 25x25
 
-  - file: "src/assets/images/air_page/下扫风off.png"
+  - file: src/assets/images/air_page/swing_off.png
     id: img_air_swing_off
     type: RGB565
     transparency: alpha_channel
     resize: 25x25
 
-  - file: "src/assets/images/air_page/下扫风open.png"
+  - file: src/assets/images/air_page/swing_on.png
     id: img_air_swing_on
     type: RGB565
     transparency: alpha_channel
@@ -164,9 +149,7 @@ script:
     then:
       - globals.set: {id: in_air, value: 'false'}
       - globals.set: {id: air_encoder_step_accum, value: '0'}
-      - lvgl.page.show:
-          id: page_clock
-          animation: MOVE_RIGHT
+      - script.execute: open_menu
 
   - id: air_temp_up
     then:
@@ -300,7 +283,6 @@ lvgl:
                   clickable: false
                   scrollbar_mode: "OFF"
 
-              # Background ring segment: 270° arc starting at 45°
               - arc:
                   x: 10
                   y: 10
@@ -325,7 +307,6 @@ lvgl:
                     width: 0
                     height: 0
 
-              # Main cyan setpoint arc: 270° starting at 45°
               - arc:
                   id: air_set_arc
                   x: 10
@@ -356,7 +337,6 @@ lvgl:
                     height: 10
                     radius: 5
 
-              # Fan speed segments centered below power button (bottom center)
               - arc:
                   id: fan_seg_1
                   x: 10

@@ -17,6 +17,8 @@
 #define LV_TICK_CUSTOM_SYS_TIME_EXPR (lv_millis())
 #define LV_USE_ARC 1
 #define LV_USE_BAR 1
+#define LV_USE_BTN 1
+#define LV_USE_BUTTON 1
 #define LV_USE_FLEX 1
 #define LV_USE_FONT 1
 #define LV_USE_FONT_PLACEHOLDER 1

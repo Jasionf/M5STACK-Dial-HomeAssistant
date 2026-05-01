@@ -389,6 +389,16 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
+  include("/Users/jason/M5Stack-Dial-Smart-Button/.esphome/build/m5stack-dialv1/.pioenvs/m5stack-dialv1/esp-idf/tcp_transport/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("/Users/jason/M5Stack-Dial-Smart-Button/.esphome/build/m5stack-dialv1/.pioenvs/m5stack-dialv1/esp-idf/esp_http_client/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
   include("/Users/jason/M5Stack-Dial-Smart-Button/.esphome/build/m5stack-dialv1/.pioenvs/m5stack-dialv1/esp-idf/esp_http_server/cmake_install.cmake")
 endif()
 
@@ -459,17 +469,37 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/Users/jason/M5Stack-Dial-Smart-Button/.esphome/build/m5stack-dialv1/.pioenvs/m5stack-dialv1/esp-idf/tcp_transport/cmake_install.cmake")
-endif()
-
-if(NOT CMAKE_INSTALL_LOCAL_ONLY)
-  # Include the install script for the subdirectory.
   include("/Users/jason/M5Stack-Dial-Smart-Button/.esphome/build/m5stack-dialv1/.pioenvs/m5stack-dialv1/esp-idf/touch_element/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
   include("/Users/jason/M5Stack-Dial-Smart-Button/.esphome/build/m5stack-dialv1/.pioenvs/m5stack-dialv1/esp-idf/usb/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("/Users/jason/M5Stack-Dial-Smart-Button/.esphome/build/m5stack-dialv1/.pioenvs/m5stack-dialv1/esp-idf/bblanchon__arduinojson/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("/Users/jason/M5Stack-Dial-Smart-Button/.esphome/build/m5stack-dialv1/.pioenvs/m5stack-dialv1/esp-idf/esphome__esp-audio-libs/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("/Users/jason/M5Stack-Dial-Smart-Button/.esphome/build/m5stack-dialv1/.pioenvs/m5stack-dialv1/esp-idf/esphome__micro-opus/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("/Users/jason/M5Stack-Dial-Smart-Button/.esphome/build/m5stack-dialv1/.pioenvs/m5stack-dialv1/esp-idf/espressif__esp-dsp/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("/Users/jason/M5Stack-Dial-Smart-Button/.esphome/build/m5stack-dialv1/.pioenvs/m5stack-dialv1/esp-idf/espressif__esp_websocket_client/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)

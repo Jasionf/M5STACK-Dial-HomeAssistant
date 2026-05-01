@@ -1,59 +1,29 @@
-# =================================================================
-#  src/pages/fridge.yaml  -  Freshness Tracker (Fridge Expiry)
-#
-#  One full-screen card per food item.  Swipe up/down to browse.
-#  Each card fills the 240×240 display and shows:
-#    · Coloured background glow matching status
-#    · Left panel: large circular progress arc + shield icon area
-#      + status badge (SAFE / SOON / EXPIRED)
-#    · Right panel: item name, START/END dates, days-left pill
-#
-#  Status thresholds (days left):
-#    > 2 days  → SAFE    (green  #4ade80)
-#    1–2 days  → SOON    (orange #fb923c)
-#    0 days    → EXPIRED (red    #f87171)
-#
-#  Demo data (today = 2026-04-04):
-#    Milk  04/01–04/05 →  75% consumed, 2 days left → SOON
-#    Eggs  03/28–04/10 →  54% consumed, 7 days left → SAFE
-#    Bread 04/02–04/04 → 100% consumed, expired     → EXPIRED
-#
-#  Screen: 240×240 round display
-#  Layout: vertical snap-scroll, each child 240×240
-# =================================================================
-
-
 substitutions:
   fridge_outer_bg: "0a0a0a"
 
-# ── Status colours ────────────────────────────────────────────
 color:
   - id: col_fridge_outer
     hex: "${fridge_outer_bg}"
   - id: col_fridge_bg
     hex: "0a0a0a"
-  # SOON — orange
   - id: col_fridge_warn
     hex: "fb923c"
   - id: col_fridge_warn_dim
     hex: "2d1506"
   - id: col_fridge_warn_med
     hex: "4a2308"
-  # SAFE — green
   - id: col_fridge_safe
     hex: "6EDA88"
   - id: col_fridge_safe_dim
     hex: "0d2618"
   - id: col_fridge_safe_med
     hex: "1a4a2c"
-  # EXPIRED — red
   - id: col_fridge_exp
     hex: "f87171"
   - id: col_fridge_exp_dim
     hex: "2d0d0d"
   - id: col_fridge_exp_med
     hex: "4a1515"
-  # Neutrals
   - id: col_fridge_text
     hex: "323230"
   - id: col_fridge_theme
@@ -68,14 +38,12 @@ color:
     hex: "161614"
   - id: col_fridge_divider
     hex: "ffffff"
-  # Card body bg (outer frame tint)
   - id: col_fridge_warn_bg
     hex: "2C231C"
   - id: col_fridge_safe_bg
     hex: "242A24"
   - id: col_fridge_exp_bg
     hex: "382A1D"
-  # Icon square backgrounds
   - id: col_fridge_warn_icon
     hex: "4a2308"
   - id: col_fridge_safe_icon
@@ -88,11 +56,7 @@ color:
   - id: col_board_expired
     hex: "201211" 
 
-
-
-# ── Fonts ──────────────────────────────────────────────────────
 font:
-  # Food item name — large, bold
   - file:
       family: DM+Sans
       weight: 700
@@ -102,14 +66,6 @@ font:
     bpp: 4
     glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz "
 
-  # # Column headers: START / END
-  # - file: "gfonts://DM+Sans"
-  #   id: font_fridge_col
-  #   size: 11
-  #   bpp: 4
-  #   glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZ "
-
-  # Date values and pill text
   - file:
       family: DM+Sans
       weight: 800
@@ -119,8 +75,6 @@ font:
     bpp: 4
     glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 /->"
 
-
-  # Date values and pill text
   - file:
       family: DM+Sans
       weight: 600
@@ -130,7 +84,6 @@ font:
     bpp: 4
     glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 /->"
 
-  # Date values and pill text
   - file:
       family: DM+Sans
       weight: 800
@@ -140,7 +93,6 @@ font:
     bpp: 4
     glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 /->"
 
-  # Status badge below arc (SAFE / SOON / EXPIRED)
   - file:
       family: DM+Sans
       weight: 700
@@ -150,7 +102,6 @@ font:
     bpp: 4
     glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-  # Dot indicator counter at bottom
   - file: "gfonts://DM+Sans"
     id: font_fridge_dot
     size: 9
@@ -158,32 +109,32 @@ font:
     glyphs: "123"
 
 image:
-  - file: "src/assets/images/牛奶.png"
+  - file: src/assets/images/milk.png
     id: img_fridge_milk
     type: RGB565
     transparency: alpha_channel
     resize: 20x20
-  - file: "src/assets/images/鸡蛋.png"
+  - file: src/assets/images/egg.png
     id: img_fridge_eggs
     type: RGB565
     transparency: alpha_channel
     resize: 20x20
-  - file: "src/assets/images/面包.png"
+  - file: src/assets/images/bread.png
     id: img_fridge_bread
     type: RGB565
     transparency: alpha_channel
     resize: 20x20
-  - file: "src/assets/images/警告.png"
+  - file: src/assets/images/warning.png
     id: img_fridge_warn_icon
     type: RGB565
     transparency: alpha_channel
     resize: 20x20
-  - file: "src/assets/images/安全1.png"
+  - file: src/assets/images/safe.png
     id: img_fridge_safe_icon
     type: RGB565
     transparency: alpha_channel
     resize: 20x20
-  - file: "src/assets/images/危险.png"
+  - file: src/assets/images/danger.png
     id: img_fridge_exp_icon
     type: RGB565
     transparency: alpha_channel
@@ -289,16 +240,6 @@ script:
                 });
                 lv_anim_start(&fa);
 
-# ── LVGL page ──────────────────────────────────────────────────
-# Layout maths (240×240 round screen):
-#   Card: x=16, y=44, w=208, h=152, radius=16
-#   Left panel: w=100, h=152
-#   Arc: x=5, y=12, w=90, h=90  (centre of panel: 50,56)
-#   Icon: x=36, y=43 (centred in arc: 5+(90-28)/2=36, 12+(90-28)/2=43)
-#   Badge: x=22, y=130
-#   Right content starts at x=112
-#   Hairline: y=54  START:y=61  END:y=78  Pill:y=119,h=22
-#   Page dots y=220, centred at x=120
 lvgl:
   pages:
     - id: page_fridge
@@ -307,7 +248,6 @@ lvgl:
       scrollbar_mode: "OFF"
       widgets:
 
-        # ── Outer round clip (240×240) ─────────────────────────
         - obj:
             x: 0
             y: 0
@@ -322,7 +262,6 @@ lvgl:
             scrollbar_mode: "OFF"
             widgets:
 
-              # ── Vertical scroll container — 3 × 240px pages ──
               - obj:
                   id: fridge_scroll
                   x: 0
@@ -336,9 +275,6 @@ lvgl:
                   scrollbar_mode: "OFF"
                   widgets:
 
-                    # ==========================================
-                    #  ITEM 1 — Milk  SOON  75%  2 days left
-                    # ==========================================
                     - obj:
                         id: card_milk
                         x: 0
@@ -353,7 +289,6 @@ lvgl:
                         scrollbar_mode: "OFF"
                         widgets:
 
-                          # Background glow
                           - obj:
                               x: 0
                               y: 0
@@ -366,7 +301,6 @@ lvgl:
                               pad_all: 0
                               clickable: false
 
-                          # Card  x=20 y=59 w=200 h=132  (3:7 left:right = 62:138)
                           - obj:
                               x: 20
                               y: 59
@@ -387,7 +321,6 @@ lvgl:
                               shadow_opa: 30%
                               widgets:
 
-                                # Left panel w=62
                                 - obj:
                                     x: 0
                                     y: 0
@@ -400,8 +333,6 @@ lvgl:
                                     pad_all: 0
                                     clickable: false
 
-                                # Closed ring — 75% filled
-                                # arc centre within card: (7+24=31, 28+24=52)
                                 - arc:
                                     id: arc_milk
                                     x: 7
@@ -431,7 +362,6 @@ lvgl:
                                       width: 0
                                       height: 0
 
-                                # Icon square bg centred in arc (31-16=15, 52-16=36)
                                 - obj:
                                     x: 15
                                     y: 36
@@ -444,13 +374,11 @@ lvgl:
                                     pad_all: 0
                                     clickable: false
 
-                                # Status icon (31-10=21, 52-10=42)
                                 - image:
                                     x: 21
                                     y: 42
                                     src: img_fridge_warn_icon
 
-                                # Status badge
                                 - label:
                                     x: 17
                                     y: 82
@@ -458,7 +386,6 @@ lvgl:
                                     text_color: col_fridge_warn
                                     text_font: font_fridge_badge
 
-                                # Divider line
                                 - obj:
                                     x: 62
                                     y: 8
@@ -469,7 +396,6 @@ lvgl:
                                     border_width: 0
                                     clickable: false
 
-                                # Food icon + name
                                 - image:
                                     x: 78
                                     y: 9
@@ -481,7 +407,6 @@ lvgl:
                                     text_color: col_fridge_theme
                                     text_font: font_fridge_name
 
-                                # Hairline
                                 - obj:
                                     x: 71
                                     y: 40
@@ -492,7 +417,6 @@ lvgl:
                                     border_width: 0
                                     clickable: false
 
-                                # START
                                 - label:
                                     x: 74
                                     y: 54
@@ -506,7 +430,6 @@ lvgl:
                                     text_color: col_fridge_time
                                     text_font: font_fridge_val
 
-                                # END
                                 - label:
                                     x: 74
                                     y: 74
@@ -520,7 +443,6 @@ lvgl:
                                     text_color: col_fridge_time
                                     text_font: font_fridge_val
 
-                                # Days pill
                                 - obj:
                                     x: 80
                                     y: 100
@@ -570,8 +492,6 @@ lvgl:
                                                 text_color: col_fridge_warn
                                                 text_font: font_fridge_time
                                                 scrollbar_mode: "OFF"
-                          # Page dots — total width 40px, centred at x=120, start x=100
-                          # active pill w=22, inactive w=6, gap=3
                           - obj:
                               x: 100
                               y: 220
@@ -603,9 +523,6 @@ lvgl:
                               border_width: 0
                               clickable: false
 
-                    # ==========================================
-                    #  ITEM 2 — Eggs  SAFE  54%  7 days left
-                    # ==========================================
                     - obj:
                         id: card_eggs
                         x: 0
@@ -822,7 +739,6 @@ lvgl:
                                                 text: "7 days left"
                                                 text_color: col_fridge_safe
                                                 text_font: font_fridge_time
-                          # dot 1 inactive, dot 2 active, dot 3 inactive
                           - obj:
                               x: 100
                               y: 220
@@ -854,9 +770,6 @@ lvgl:
                               border_width: 0
                               clickable: false
 
-                    # ==========================================
-                    #  ITEM 3 — Bread  EXPIRED  100%  0 days
-                    # ==========================================
                     - obj:
                         id: card_bread
                         x: 0
@@ -944,7 +857,6 @@ lvgl:
                                       width: 0
                                       height: 0
 
-                                # expired uses same icon bg as warn
                                 - obj:
                                     x: 15
                                     y: 36
@@ -1075,7 +987,6 @@ lvgl:
                                                 text_color: col_fridge_exp
                                                 text_font: font_fridge_time
 
-                          # dot 1 inactive, dot 2 inactive, dot 3 active
                           - obj:
                               x: 100
                               y: 220

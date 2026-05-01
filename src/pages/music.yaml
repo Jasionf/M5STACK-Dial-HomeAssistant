@@ -1,19 +1,17 @@
-# =================================================================
-#  src/pages/music.yaml  -  Music Player Page
-#
-#  Layout (based on music.css):
-#    · Full-circle purple background (#6640F1)
-#    · Album art circle (108×108) in upper half
-#    · Song title text (DM Sans 14px, white)
-#    · Playback controls: Prev | Play (circle) | Next
-#    · 7 decorative waveform bars (gradient purple)
-#
-#  Encoder: clockwise = volume up, anticlockwise = volume down
-#  Button click: (reserved for play/pause toggle via HA)
-#  Hold button: close page → page_clock
-#
-#  TODO: wire media player HA entity for live track info
-# =================================================================
+---
+substitutions:
+  icon_play: "\uF000"
+  icon_pause: "\uF001"
+  icon_forward: "\uF002"
+  icon_backward: "\uF003"
+  icon_music: "\uF004"
+  icon_volume: "\uF005"
+
+external_components:
+  - source: ./components
+    components: [const, image, generic_image, media_source, sendspin]
+    refresh: 0s
+  
 
 font:
   - file:
@@ -23,7 +21,19 @@ font:
     id: font_music_title
     size: 14
     bpp: 4
-    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,!?-'"
+    glyphs: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,!?-''_()"'
+
+  - file: ./src/assets/fonts/media_player_icons.ttf
+    id: media_player_icons
+    size: 24
+    bpp: 4
+    glyphs:
+    - ${icon_play}  # play-solid-full
+    - ${icon_pause}  # pause-solid-full
+    - ${icon_forward}  # forward-solid-full
+    - ${icon_backward}  # backward-solid-full
+    - ${icon_music}
+    - ${icon_volume}
 
 color:
   - id: col_music_bg
@@ -38,31 +48,86 @@ color:
     hex: "1A1040"
 
 image:
-  - file: src/assets/images/play_right.png
-    id: play_right
-    type: RGB565
-    transparency: alpha_channel
-    resize: 15x15
-  - file: src/assets/images/play_left.png
-    id: play_left
-    type: RGB565
-    transparency: alpha_channel
-    resize: 15x15
-  - file: src/assets/images/play_start.png
-    id: play_start
-    type: RGB565
-    transparency: alpha_channel
-    resize: 20x20
-  - file: src/assets/images/play_vlaue.png
-    id: play_value
-    type: RGB565
-    transparency: alpha_channel
-    resize: 16x16
-  - file: src/assets/images/playimage.png
-    id: playimage
+  - file: src/assets/images/place_holder.png
+    id: place_holder
     type: RGB565
     transparency: alpha_channel
     resize: 108x108
+
+sendspin:
+  id: sendspin_hub
+
+generic_image:
+  - platform: sendspin
+    id: sendspin_cover_art
+    format: jpg
+    type: rgb565
+    resize: 108x108
+    image_source: ALBUM
+    on_image_decoded:
+      - logger.log: "Album image decoded"
+      - lambda: |-
+          lv_obj_t *obj = id(img_music_cover);
+          static lv_anim_t a;
+          lv_anim_init(&a);
+          lv_anim_set_var(&a, obj);
+          lv_anim_set_values(&a, LV_OPA_COVER, LV_OPA_TRANSP);
+          lv_anim_set_time(&a, 200);
+          lv_anim_set_exec_cb(&a, [](void *var, int32_t v) {
+            lv_obj_set_style_opa((lv_obj_t *)var, v, 0);
+          });
+          lv_anim_start(&a);
+      - delay: 200ms    
+      - lvgl.image.update:
+          id: img_music_cover
+          src: sendspin_cover_art
+      - lambda: |-
+          lv_obj_t *obj = id(img_music_cover);
+          static lv_anim_t a;
+          lv_anim_init(&a);
+          lv_anim_set_var(&a, obj);
+          lv_anim_set_values(&a, LV_OPA_TRANSP, LV_OPA_COVER);
+          lv_anim_set_time(&a, 300);
+          lv_anim_set_exec_cb(&a, [](void *var, int32_t v) {
+            lv_obj_set_style_opa((lv_obj_t *)var, v, 0);
+          });
+          lv_anim_start(&a);
+
+text_sensor:
+  - platform: sendspin
+    id: track_title
+    type: title
+    on_value:
+      - lambda: |-
+          if ( !x.empty() ) 
+            lv_label_set_text(id(lbl_music_title), x.c_str());
+          else
+            lv_label_set_text(id(lbl_music_title), "Ready to Play");
+
+  - platform: sendspin
+    id: track_artist
+    type: artist
+    
+  - platform: homeassistant
+    id: media_player_status
+    entity_id: media_player.m5stack_dial
+    on_value:
+      - lambda: |-
+          ESP_LOGD("Media Player", "Read media player status: %s", x.c_str());
+          if ( x == "idle" || x == "paused" 
+              || x == "unavailable" || x == "off"
+              || x == "unknown" )
+          {
+            id(music_playing) = false;
+            lv_label_set_text(id(play_label), "${icon_play}");
+          }
+          else if ( x == "playing" ) {
+            id(music_playing) = true;
+            lv_label_set_text(id(play_label), "${icon_pause}");
+          }
+          // read track progress and duration when state change
+          id(local_progress_ms) = id(sendspin_hub).get_track_progress_ms();
+          id(local_duration_ms) = id(sendspin_hub).get_track_duration_ms();
 
 globals:
   - id: in_music
@@ -76,6 +141,14 @@ globals:
     initial_value: 'false'
   - id: music_progress
     type: int
+    initial_value: '0'
+  - id: local_progress_ms
+    type: int
+    restore_value: false
+    initial_value: '0'
+  - id: local_duration_ms
+    type: int
+    restore_value: false
     initial_value: '0'
 
 script:
@@ -100,13 +173,14 @@ script:
       - homeassistant.action:
           action: media_player.media_next_track
           data:
-            entity_id: media_player.echo_base
+            entity_id: media_player.m5stack_dial
+
   - id: play_prev
     then:
       - homeassistant.action:
           action: media_player.media_previous_track
           data:
-            entity_id: media_player.echo_base 
+            entity_id: media_player.m5stack_dial
   - id: play_toggle
     then:
       - lambda: |-
@@ -114,7 +188,10 @@ script:
       - homeassistant.action:
           action: media_player.media_play_pause
           data:
-            entity_id: media_player.echo_base
+            entity_id: media_player.m5stack_dial
+      - lvgl.label.update:
+          id: play_label
+          text: ${icon_pause}
   - id: music_volume_up
     then:
       - lambda: |-
@@ -124,7 +201,7 @@ script:
       - homeassistant.action:
           action: media_player.volume_up
           data:
-            entity_id: media_player.echo_base
+            entity_id: media_player.m5stack_dial
       - script.execute: refresh_music_volume     
 
   - id: music_volume_down
@@ -136,7 +213,7 @@ script:
       - homeassistant.action:
           action: media_player.volume_down
           data:
-            entity_id: media_player.echo_base
+            entity_id: media_player.m5stack_dial
       - script.execute: refresh_music_volume
 
   - id: refresh_music_volume
@@ -157,7 +234,7 @@ script:
     then:
       - lambda: |-
           lv_arc_set_value(id(arc_music_progress), id(music_progress));
-          ESP_LOGI("music", "progress=%d", id(music_progress));
+          ESP_LOGD("music", "progress=%d", id(music_progress));
 
 lvgl:
   pages:
@@ -180,8 +257,6 @@ lvgl:
             pad_all: 0
             scrollbar_mode: "OFF"
             widgets:
-              # ── Progress / volume arc ring ─────────────────
-              # Full 360° ring; value tracks volume (0-100)
               - arc:
                   id: arc_music_progress
                   align: CENTER
@@ -210,8 +285,6 @@ lvgl:
                     width: 0
                     height: 0
 
-              # ── Album art circle ──────────────────────────────
-              # 120×120 clipped circle, centred horizontally, top
               - obj:
                   x: 60
                   y: 12
@@ -226,30 +299,29 @@ lvgl:
                   widgets:
                     - image:
                         id: img_music_cover
-                        src: playimage
+                        src: place_holder
                         x: 0
                         y: 0
-
-              # ── Song title ────────────────────────────────────
-              # Font 14px, wide enough for one line, centred
               - label:
                   id: lbl_music_title
                   x: 20
                   y: 134
                   width: 200
-                  text: "we don't talk anymore"
+                  text: "Ready to Play"
                   text_font: font_music_title
                   text_color: 0xFFFFFF
-                  long_mode: DOT
                   text_align: CENTER
-
-              # ── Volume row: speaker icon + 7 bars ────────────
-              # Total width: 15(icon)+6(gap)+7×6+6×4(gaps)=87px
-              # Start x=(240-87)/2=76 → centred
-              - image:
-                  x: 76
-                  y: 156
-                  src: play_value
+                  on_boot:
+                    - lambda: |-
+                        lv_obj_set_style_anim_time(id(lbl_music_title), 15000, 0);
+                        lv_label_set_long_mode(id(lbl_music_title), LV_LABEL_LONG_SCROLL);
+                        lv_label_set_recolor(id(lbl_music_title), true);
+              - label:
+                  text_font: media_player_icons
+                  text: ${icon_volume}
+                  x: 70
+                  y: 150
+                  text_color: 0xFFFFFF
 
               - obj: {id: vol_bar_1, x: 97,  y: 155, width: 6, height: 12, radius: 3, bg_color: 0xA98FFF, bg_opa: COVER, border_width: 0, clickable: false}
               - obj: {id: vol_bar_2, x: 107, y: 155, width: 6, height: 12, radius: 3, bg_color: 0xA387FF, bg_opa: COVER, border_width: 0, clickable: false}
@@ -259,68 +331,99 @@ lvgl:
               - obj: {id: vol_bar_6, x: 147, y: 155, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
               - obj: {id: vol_bar_7, x: 157, y: 155, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
 
-              # ── Playback controls ─────────────────────────────
-              # Prev | Play (44px circle, centred at 120,205) | Next
-              - obj:
-                  x: 48
-                  y: 183
-                  width: 36
-                  height: 36
-                  radius: 18
+              - button:
+                  x: 62
+                  y: 184
+                  width: 24
+                  height: 24
                   bg_color: col_music_dark
-                  bg_opa: COVER
+                  bg_opa: TRANSP
+                  shadow_opa: TRANSP
                   border_width: 0
-                  clickable: true
                   scrollbar_mode: "OFF"
+                  id: prev_btn
                   on_press:
                     - script.execute: play_prev
+                  on_boot:
+                    - lambda: |-
+                        lv_group_remove_obj(id(prev_btn));
                   widgets:
-                    - image:
-                        src: play_left
+                    - label:
+                        text_font: media_player_icons
+                        text: ${icon_backward}
+                        text_color: 0xFFFFFF
                         align: CENTER
 
-              - obj:
-                  x: 98
+              - button:
+                  x: 102
                   y: 175
+                  id: play_btn
                   width: 44
                   height: 44
                   radius: 22
                   bg_color: col_music_play_btn
                   bg_opa: COVER
+                  shadow_opa: TRANSP
                   border_width: 0
-                  clickable: true
                   scrollbar_mode: "OFF"
                   on_press:
                     - script.execute: play_toggle
+                  on_boot:
+                    - lambda: |-
+                        lv_group_remove_obj(id(play_btn));
                   widgets:
-                    - image:
-                        src: play_start
+                    - label:
+                        id: play_label
+                        text_font: media_player_icons
+                        text: ${icon_play}
+                        text_color: 0xFFFFFF
                         align: CENTER
 
-              - obj:
-                  x: 156
-                  y: 183
-                  width: 36
-                  height: 36
-                  radius: 18
+              - button:
+                  id: next_btn
+                  x: 161
+                  y: 184
+                  width: 24
+                  height: 24
                   bg_color: col_music_dark
-                  bg_opa: COVER
+                  bg_opa: TRANSP
+                  shadow_opa: TRANSP
                   border_width: 0
-                  clickable: true
                   scrollbar_mode: "OFF"
                   on_press:
                     - script.execute: play_next
+                  on_boot:
+                    - lambda: |-
+                        lv_group_remove_obj(next_btn);
                   widgets:
-                    - image:
-                        src: play_right
+                    - label:
+                        text_font: media_player_icons
+                        text: ${icon_forward}
+                        text_color: 0xFFFFFF
                         align: CENTER
 
 interval:
-  - interval: 1s
+  - interval: 200ms
     then:
       - lambda: |-
           if (!id(music_playing)) return;
-          int p = id(music_progress) + 1;
-          if (p > 100) p = 0;
-          id(music_progress) = p;
-          lv_arc_set_value(id(arc_music_progress), p);
+          auto dur = id(local_duration_ms);
+          if (dur == 0) return;
+          id(local_progress_ms) += 200;
+
+          auto local_val = id(local_progress_ms);
+          
+          if ( id(media_player_status).state == "idle" 
+               || id(media_player_status).state == "paused"
+               || id(media_player_status).state == "playing"
+               || id(media_player_status).state == "buffering" ) {
+            auto sync_val = id(sendspin_hub).get_track_progress_ms();
+            if ( sync_val != local_val ) {
+              id(local_progress_ms) = sync_val;
+            }
+          }
+
+          if (id(local_progress_ms) > dur) id(local_progress_ms) = dur;
+          float progress = (float)id(local_progress_ms) / dur * 100.0f;
+          if (progress > 100) progress = 100;
+          lv_arc_set_value(id(arc_music_progress), (int)progress);

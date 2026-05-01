@@ -317,7 +317,7 @@ ESP_IDF_VERSION_MAJOR:UNINITIALIZED=5
 ESP_IDF_VERSION_MINOR:UNINITIALIZED=5
 
 //No help, variable specified on the command line.
-EXCLUDE_COMPONENTS:UNINITIALIZED=cmock;driver;esp_adc;esp_driver_dac;esp_driver_i2s;esp_driver_mcpwm;esp_driver_pcnt;esp_driver_touch_sens;esp_driver_twai;esp_eth;esp_hid;esp_http_client;esp_https_ota;esp_https_server;esp_local_ctrl;espcoredump;fatfs;mqtt;openthread;perfmon;protocomm;spiffs;ulp;unity;wear_levelling;wifi_provisioning
+EXCLUDE_COMPONENTS:UNINITIALIZED=cmock;driver;esp_adc;esp_driver_dac;esp_driver_i2s;esp_driver_mcpwm;esp_driver_pcnt;esp_driver_touch_sens;esp_driver_twai;esp_eth;esp_hid;esp_https_ota;esp_https_server;esp_local_ctrl;espcoredump;fatfs;mqtt;openthread;perfmon;protocomm;spiffs;ulp;unity;wear_levelling;wifi_provisioning
 
 //No help, variable specified on the command line.
 EXTRA_COMPONENT_DIRS:PATH=/Users/jason/M5Stack-Dial-Smart-Button/.esphome/build/m5stack-dialv1/src
@@ -360,6 +360,9 @@ Mbed TLS_IS_TOP_LEVEL:STATIC=OFF
 
 //Value Computed by CMake
 Mbed TLS_SOURCE_DIR:STATIC=/Users/jason/.platformio/packages/framework-espidf/components/mbedtls/mbedtls
+
+//Path to a program.
+PATCH_EXECUTABLE:FILEPATH=/usr/bin/patch
 
 //No help, variable specified on the command line.
 PYTHON:UNINITIALIZED=/Users/jason/.platformio/penv/.espidf-5.5.3/bin/python
@@ -408,6 +411,15 @@ mbedtls_LIB_DEPENDS:STATIC=general;__idf_cxx;general;__idf_newlib;general;__idf_
 
 //Dependencies for the target
 mbedx509_LIB_DEPENDS:STATIC=general;__idf_cxx;general;__idf_newlib;general;__idf_freertos;general;__idf_esp_hw_support;general;__idf_heap;general;__idf_log;general;__idf_soc;general;__idf_hal;general;__idf_esp_rom;general;__idf_esp_common;general;__idf_esp_system;general;__idf_xtensa;general;mbedcrypto;
+
+//Value Computed by CMake
+micro_ogg_demuxer_BINARY_DIR:STATIC=/Users/jason/M5Stack-Dial-Smart-Button/.esphome/build/m5stack-dialv1/.pioenvs/m5stack-dialv1/esp-idf/esphome__micro-opus/micro-ogg-demuxer
+
+//Value Computed by CMake
+micro_ogg_demuxer_IS_TOP_LEVEL:STATIC=OFF
+
+//Value Computed by CMake
+micro_ogg_demuxer_SOURCE_DIR:STATIC=/Users/jason/M5Stack-Dial-Smart-Button/.esphome/build/m5stack-dialv1/managed_components/esphome__micro-opus/lib/micro-ogg-demuxer
 
 //Dependencies for the target
 p256m_LIB_DEPENDS:STATIC=general;__idf_cxx;general;__idf_newlib;general;__idf_freertos;general;__idf_esp_hw_support;general;__idf_heap;general;__idf_log;general;__idf_soc;general;__idf_hal;general;__idf_esp_rom;general;__idf_esp_common;general;__idf_esp_system;general;__idf_xtensa;
@@ -564,7 +576,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=104
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=111
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP

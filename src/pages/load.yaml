@@ -5,7 +5,6 @@ font:
     bpp: 4
     glyphs: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .!-"
 
-
   - file:
       family: DM+Sans
       weight: 500
@@ -15,7 +14,6 @@ font:
     bpp: 4
     glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .:%\xc2\xb0/-"
 
-# ── Colors ────────────────────────────────────────────────────
 color:
   - id: col_blue
     hex: "41B3FF"        # active blue — spinner / dots / bar
@@ -28,8 +26,6 @@ globals:
   - id: dot_tick
     type: int
     initial_value: '0'
-
-
 
 interval:
   - interval: 400ms
@@ -47,7 +43,6 @@ interval:
                 lv_obj_set_style_bg_color(id(dot_2),
                   id(dot_tick) == 2 ? lv_color_hex(0x41B3FF) : lv_color_hex(0x0D2340), LV_PART_MAIN);
 
-# ── Scripts ───────────────────────────────────────────────────
 script:
   - id: update_loading_page
     then:
@@ -73,8 +68,6 @@ script:
       - lvgl.label.update:
           id: lbl_sub
           text: "Syncing..."
-      # One continuous lv_anim drives the bar 0→100 over 2400 ms entirely
-      # inside the LVGL timer context — no ESPHome delay scheduling, no steps.
       - lambda: |-
           static lv_anim_t a;
           lv_anim_init(&a);
@@ -102,7 +95,6 @@ script:
             id(check_boot_status).execute();
           }
 
-# ── LVGL top layer ────────────────────────────────────────────
 lvgl:
   top_layer:
     widgets:
@@ -120,7 +112,6 @@ lvgl:
           clip_corner: true
           widgets:
 
-            # ── Spinner (connecting phase — thin blue ring) ────────
             - obj:
                 id: obj_spinner
                 align: CENTER
@@ -144,13 +135,11 @@ lvgl:
                         arc_color: col_blue
                         arc_width: 3
 
-            # ── Center logo (ID defined in dial.yaml, 72×72) ───────
             - image:
                 src: logo_img
                 align: CENTER
                 y: -22
 
-            # ── Primary status text ────────────────────────────────
             - label:
                 id: lbl_status
                 align: CENTER
@@ -160,7 +149,6 @@ lvgl:
                 text: "Connecting..."
                 text_align: CENTER
 
-            # ── Sub-status text ────────────────────────────────────
             - label:
                 id: lbl_sub
                 align: CENTER
@@ -170,7 +158,6 @@ lvgl:
                 text: "Home Assistant"
                 text_align: CENTER
 
-            # ── Three-dot animation (connecting phase) ─────────────
             - obj:
                 id: obj_dots
                 align: CENTER
@@ -212,7 +199,6 @@ lvgl:
                       border_width: 0
                       clickable: false
 
-            # ── Progress bar (sync phase — default hidden) ─────────
             - obj:
                 id: obj_bar_wrap
                 align: CENTER

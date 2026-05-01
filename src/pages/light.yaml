@@ -1,19 +1,3 @@
-# =================================================================
-#  src/pages/light.yaml  -  Light Control Page
-#
-#  270° gradient arc brightness dial centered at 120,120
-#  Rotary encoder adjusts brightness (0-100)
-#  Touch or single-click enters from menu
-#  Hold button returns to clock
-#
-#  Arc gradient simulation: 3 overlapping arc segments
-#    Seg 1 (0-33%):  blue  #5ABBFD
-#    Seg 2 (33-66%): purple #A792E8
-#    Seg 3 (66-100%): yellow #FDC003
-#  A masked indicator arc on top shows actual progress
-# =================================================================
-
-
 image:
   - file: "src/assets/images/palette.png"
     id: light_img_palette
@@ -21,18 +5,17 @@ image:
     transparency: alpha_channel
     resize: 22x22
 
-  - file: "src/assets/images/灯光.png"
+  - file: src/assets/images/light.png
     id: light_img_dengguang
     type: RGB565
     transparency: alpha_channel
     resize: 20x20
 
-  - file: "src/assets/images/渐变.png"
+  - file: src/assets/images/gradient.png
     id: light_img_gradient
     type: RGB565
     transparency: alpha_channel
     resize: 22x22
-
 
 font:
   - file:
@@ -133,6 +116,7 @@ script:
   - id: close_light
     then:
       - globals.set: {id: in_light, value: 'false'}
+      - globals.set: {id: in_colorpicker, value: 'false'}
       - script.execute: open_menu
 
   - id: toggle_light_onoff
@@ -295,7 +279,6 @@ script:
                 id: led_strip
                 brightness: !lambda "return id(light_brightness) / 100.0f;"
 
-  # refresh_light_arc: update label, arc, knob, and ALL theme-coloured elements
   - id: refresh_light_arc
     then:
       - lambda: |-
@@ -310,17 +293,9 @@ script:
           int pair_x = 120 - (nw + gap + pct_w) / 2;
           lv_obj_set_x(id(lbl_brightness_num), pair_x);
           lv_obj_set_x(id(lbl_brightness_pct), pair_x + nw + gap);
-          // arc: rotation=90, start_angle=55, end_angle=280 → total=225°
-          float angle_deg = 145.0f + (pct / 100.0f) * 225.0f;
-          float angle_rad = angle_deg * 3.14159f / 180.0f;
-          int radius = 93;
-          int kx = (int)(radius * cosf(angle_rad));
-          int ky = (int)(radius * sinf(angle_rad));
-          lv_obj_set_pos(id(light_knob_dot), 120 + kx - 10, 120 + ky - 10);
           // Sync ALL theme-coloured elements from globals
           lv_color_t tc = lv_color_make(id(light_color_r), id(light_color_g), id(light_color_b));
           lv_obj_set_style_arc_color(id(light_arc), tc, LV_PART_INDICATOR | LV_STATE_DEFAULT);
-          lv_obj_set_style_bg_color(id(light_knob_dot), tc, LV_STATE_DEFAULT);
           lv_obj_set_style_text_color(id(lbl_brightness_pct), tc, LV_STATE_DEFAULT);
           lv_obj_set_style_text_color(id(lbl_brightness_num), lv_color_hex(0xFFFFFF), LV_STATE_DEFAULT);
           lv_obj_set_style_border_color(id(btn_palette), tc, LV_STATE_DEFAULT);
@@ -351,8 +326,6 @@ script:
       - lambda: |-
           id(light_gradient_mode) = (id(light_gradient_mode) + 1) % 6;
           id(light_on) = true;
-          lv_color_t tc = lv_color_make(id(light_color_r), id(light_color_g), id(light_color_b));
-          lv_obj_set_style_bg_color(id(btn_dengguang), tc, LV_STATE_DEFAULT);
       - script.execute: refresh_light_arc
       - if:
           condition:
@@ -427,7 +400,6 @@ lvgl:
             pad_all: 0
             scrollbar_mode: "OFF"
             widgets:
-              # ── Arc: track + orange indicator + white knob ──
               - arc:
                   id: light_arc
                   x: 17
@@ -436,7 +408,7 @@ lvgl:
                   height: 205
                   rotation: 90
                   start_angle: 55
-                  end_angle: 280
+                  end_angle: 305
                   value: 75
                   min_value: 0
                   max_value: 100
@@ -459,7 +431,6 @@ lvgl:
                     height: 16
                     radius: 8
 
-              # ── White knob dot (custom, precise size control) ────
               - obj:
                   id: light_knob_dot
                   x: 176
@@ -467,13 +438,11 @@ lvgl:
                   width: 20
                   height: 20
                   radius: 12
-                  bg_color: 0xFFFFFF
-                  bg_opa: COVER
+                  bg_opa: TRANSP
                   border_width: 0
                   clickable: false
                   scrollbar_mode: "OFF"
 
-              # ── Big brightness number ─────────────────────────
               - label:
                   id: lbl_brightness_num
                   x: 72
@@ -482,7 +451,6 @@ lvgl:
                   text_font: font_light_big
                   text_color: 0xFFFFFF
 
-              # ── Percent sign ──────────────────────────────────
               - label:
                   id: lbl_brightness_pct
                   x: 152
@@ -491,9 +459,8 @@ lvgl:
                   text_font: font_light_pct
                   text_color: col_light_purple
 
-              # ── LIGHT label capsule ───────────────────────────
               - obj:
-                  x: 84
+                  x: 81
                   y: 143
                   width: 78
                   height: 22
@@ -511,10 +478,9 @@ lvgl:
                         text_font: font_light_label
                         text_color: col_light_label_text
 
-              # ── Bottom icon row: 3 circular PNG icons ────────
               - obj:
                   id: btn_palette
-                  x: 66
+                  x: 61
                   y: 177
                   width: 36
                   height: 36
@@ -530,6 +496,7 @@ lvgl:
                   shadow_spread: 0
                   clickable: true
                   scrollbar_mode: "OFF"
+                  scroll_dir: NONE
                   on_click:
                     - script.execute: open_colorpicker
                   widgets:
@@ -540,7 +507,7 @@ lvgl:
 
               - obj:
                   id: btn_rainbow
-                  x: 107
+                  x: 102
                   y: 177
                   width: 36
                   height: 36
@@ -556,6 +523,7 @@ lvgl:
                   shadow_spread: 0
                   clickable: true
                   scrollbar_mode: "OFF"
+                  scroll_dir: NONE
                   on_click:
                     - script.execute: cycle_gradient_effect
                   widgets:
@@ -565,7 +533,7 @@ lvgl:
                         clickable: false
               - obj:
                   id: btn_dengguang
-                  x: 148
+                  x: 143
                   y: 177
                   width: 36
                   height: 36
@@ -581,6 +549,7 @@ lvgl:
                   shadow_spread: 0
                   clickable: true
                   scrollbar_mode: "OFF"
+                  scroll_dir: NONE
                   on_click:
                     - script.execute: toggle_light_onoff
                   widgets:
@@ -589,7 +558,6 @@ lvgl:
                         align: CENTER
                         clickable: false
 
-    # ── Color Picker Page ──────────────────────────────────────────
     - id: page_colorpicker
       bg_color: col_light_bg
       bg_opa: COVER
@@ -613,7 +581,6 @@ lvgl:
             scrollbar_mode: "OFF"
             widgets:
 
-              # ── Full 360° hue ring arc ─────────────────────────
               - arc:
                   id: cp_arc
                   x: 12
@@ -645,8 +612,6 @@ lvgl:
                     height: 16
                     radius: 8
 
-
-              # ── Center color swatch — tap to confirm ───────────
               - obj:
                   id: cw_color_circle
                   align: CENTER
